@@ -1,3 +1,5 @@
+'use_strict';
+
 const Easing = { 
     Linear: {
         EaseNone: function(k) {
@@ -74,7 +76,7 @@ const Easing = {
     }, 
     Bounce: {
         EaseIn: function (k) {
-            return 1 - Timeline.Easing.Bounce.EaseOut(1 - k);
+            return 1 - Easing.Bounce.EaseOut(1 - k);
         },
         EaseOut: function (k) {
             if ((k /= 1) < (1 / 2.75)) {
@@ -88,32 +90,24 @@ const Easing = {
             }
         },
         EaseInOut: function (k) {
-            if (k < 0.5) return Timeline.Easing.Bounce.EaseIn(k * 2) * 0.5;
-            return Timeline.Easing.Bounce.EaseOut(k * 2 - 1) * 0.5 + 0.5;
+            if (k < 0.5) return Easing.Bounce.EaseIn(k * 2) * 0.5;
+            return Easing.Bounce.EaseOut(k * 2 - 1) * 0.5 + 0.5;
         }
     } 
 };
 
 module.exports = Easing;
 
-Timeline.easingFunctionToString = function (f) {
-    for (var name in Timeline.easingMap) {
-        if (Timeline.easingMap[name] == f) {
-            return name;
-        }
-    }
-};
+// Timeline.stringToEasingFunction = function (name) {
+//     return Timeline.easingMap[name];
+// };
 
-Timeline.stringToEasingFunction = function (name) {
-    return Timeline.easingMap[name];
-};
+// Timeline.easingMap = {
+// };
 
-Timeline.easingMap = {
-};
-
-for (var easingFunctionFamilyName in Timeline.Easing) {
-    var easingFunctionFamily = Timeline.Easing[easingFunctionFamilyName];
-    for (var easingFunctionName in easingFunctionFamily) {
-        Timeline.easingMap[easingFunctionFamilyName + "." + easingFunctionName] = easingFunctionFamily[easingFunctionName];
-    }
-}
+// for (var easingFunctionFamilyName in Timeline.Easing) {
+//     var easingFunctionFamily = Timeline.Easing[easingFunctionFamilyName];
+//     for (var easingFunctionName in easingFunctionFamily) {
+//         Timeline.easingMap[easingFunctionFamilyName + "." + easingFunctionName] = easingFunctionFamily[easingFunctionName];
+//     }
+// }

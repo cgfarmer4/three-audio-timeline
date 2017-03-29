@@ -2,9 +2,8 @@
   "name": "three-audio-timeline",
   "version": "0.0.1",
   "description": "A JavaScript animation library",
-  "main": "index.js",
   "scripts": {
-    "build": "webpack"
+    "build": ""
   },
   "repository": {
     "type": "git",

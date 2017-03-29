@@ -1,4 +1,5 @@
 'use_strict';
+const Easing = require('./easing.js');
 
 class Anim {
     constructor(name, target, timeline) {
@@ -15,14 +16,14 @@ class Anim {
         this.animGroups = [];
     }
     to() {
-        var args = [];
-        for (var i = 0; i < arguments.length; i++) {
+        let args = [];
+        for (let i = 0; i < arguments.length; i++) {
             args.push(arguments[i]);
         }
-        var delay;
-        var properties;
-        var duration;
-        var easing;
+        let delay;
+        let properties;
+        let duration;
+        let easing;
 
         if (typeof (args[0]) == "number") {
             delay = args.shift();
@@ -49,14 +50,14 @@ class Anim {
             easing = args.shift();
         }
         else {
-            easing = Timeline.Easing.Linear.EaseNone;
+            easing = Easing.Linear.EaseNone;
         }
 
-        var animGroup = [];
-        var nop = function () { }
+        let animGroup = [];
+        let nop = function () { }
 
-        for (var propertyName in properties) {
-            var animInfo = {
+        for (let propertyName in properties) {
+            let animInfo = {
                 hasStarted: false,
                 timeline: this.timeline,
                 targetName: this.name,

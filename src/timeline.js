@@ -9,10 +9,10 @@ class Timeline {
         this.loopCount = 0;
         this.loopMode = 0;
         this.playing = true;
-        var self = this;
+
         this.fps = 30;
-        this.loopInterval = setInterval(function () {
-            self.update();
+        this.loopInterval = setInterval(() => {
+            this.update();
         }, 1000 / this.fps);
     }
     /**
@@ -37,9 +37,6 @@ class Timeline {
     play() {
         this.playing = true;
     }
-    preUpdate() {
-        //placeholder for hooks like GUI rendering
-    }
     update(deltaTime) {
         if (deltaTime !== undefined) {
             if (this.loopInterval !== 0) {
@@ -51,7 +48,7 @@ class Timeline {
             deltaTime = 1 / this.fps;
         }
 
-        this.preUpdate();
+        // this.preUpdate();
 
         if (this.playing) {
             this.totalTime += deltaTime;
