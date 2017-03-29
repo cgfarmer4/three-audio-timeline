@@ -1,13 +1,16 @@
 'use_strict';
+const Easing = require('./easing.js');
+var EventEmitter = require('events').EventEmitter
 
-class Timeline {
+class Timeline extends EventEmitter {
     constructor() {
+        super();
         this.name = "Global";
         this.anims = [];
         this.time = 0;
         this.totalTime = 0;
         this.loopCount = 0;
-        this.loopMode = 0;
+        this.loopMode = -1;
         this.playing = true;
 
         this.fps = 30;
@@ -48,7 +51,7 @@ class Timeline {
             deltaTime = 1 / this.fps;
         }
 
-        // this.preUpdate();
+        this.emit('update');
 
         if (this.playing) {
             this.totalTime += deltaTime;
@@ -105,8 +108,11 @@ class Timeline {
             }
             var duration = propertyAnim.endTime - propertyAnim.startTime;
             var t = duration ? (this.time - propertyAnim.startTime) / (duration) : 1;
+            var easeType = propertyAnim.easing.substr(0, propertyAnim.easing.indexOf("."));
+            var easeBezier = propertyAnim.easing.substr(propertyAnim.easing.indexOf(".") + 1, propertyAnim.easing.length);
+
             t = Math.max(0, Math.min(t, 1));
-            t = propertyAnim.easing(t);
+            t = Easing[easeType][easeBezier](t);
 
             var value = propertyAnim.startValue + (propertyAnim.endValue - propertyAnim.startValue) * t;
 

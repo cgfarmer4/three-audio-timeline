@@ -7,7 +7,7 @@ class TimelineGui {
         var self = this;
 
         this.timeline = timeline;
-        this.anims = timeline.anims;
+
         this.trackLabelWidth = 108;
         this.trackLabelHeight = 20;
         this.tracksScrollWidth = 16;
@@ -76,6 +76,8 @@ class TimelineGui {
 
         this.updateGUI();
         this.buildInputDialog();
+
+        this.timeline.on('update', this.updateGUI.bind(this));
 
         this.canvas.addEventListener('click', function (event) {
             self.onMouseClick(event);
@@ -247,7 +249,7 @@ class TimelineGui {
             if (timeArr.length > 0) seconds = parseInt(timeArr[timeArr.length - 1], 10);
             if (timeArr.length > 1) minutes = parseInt(timeArr[timeArr.length - 2], 10);
             if (timeArr.length > 2) hours = parseInt(timeArr[timeArr.length - 3], 10);
-            this.time = this.totalTime = hours * 60 * 60 + minutes * 60 + seconds;
+            this.time = this.timeline.totalTime = hours * 60 * 60 + minutes * 60 + seconds;
         }
         else if (x > this.trackLabelWidth && this.selectedKeys.length === 0 && y > this.headerHeight && y < this.canvasHeight - this.timeScrollHeight) {
             this.addKeyAt(x, y);
@@ -263,7 +265,7 @@ class TimelineGui {
         var newKey = {
             time: this.xToTime(mouseX),
             value: selectedTrack.target[selectedTrack.propertyName],
-            easing: Easing.Linear.EaseNone,
+            easing: "Linear.EaseNone",
             track: selectedTrack
         };
         if (selectedTrack.keys.length === 0) {
@@ -282,7 +284,10 @@ class TimelineGui {
                 var k = (selectedTrack.keys[i].time - newKey.time) / (selectedTrack.keys[i].time - selectedTrack.keys[i - 1].time);
                 var delta = selectedTrack.keys[i].value - selectedTrack.keys[i - 1].value;
                 newKey.easing = selectedTrack.keys[i - 1].easing;
-                newKey.value = selectedTrack.keys[i - 1].value + delta * newKey.easing(k);
+                var easeType = newKey.easing.substr(0, newKey.easing.indexOf("."));
+                var easeBezier = newKey.easing.substr(newKey.easing.indexOf(".") + 1, newKey.easing.length);
+
+                newKey.value = selectedTrack.keys[i - 1].value + delta * Easing[easeType][easeBezier](k);
                 selectedTrack.keys.splice(i, 0, newKey);
                 break;
             }
@@ -422,7 +427,7 @@ class TimelineGui {
         }
 
         //time ticker
-        this.drawLine(this.timeToX(this.time), 0, this.timeToX(this.time), h, "#FF0000");
+        this.drawLine(this.timeToX(this.timeline.time), 0, this.timeToX(this.timeline.time), h, "#FF0000");
 
         //time scale
 
@@ -458,9 +463,9 @@ class TimelineGui {
     }
     findAnimationEnd() {
         var endTime = 0;
-        for (var i = 0; i < this.anims.length; i++) {
-            if (this.anims[i].endTime > endTime) {
-                endTime = this.anims[i].endTime;
+        for (var i = 0; i < this.timeline.anims.length; i++) {
+            if (this.timeline.anims[i].endTime > endTime) {
+                endTime = this.timeline.anims[i].endTime;
             }
         }
         return endTime;
@@ -565,8 +570,8 @@ class TimelineGui {
         var i, j;
         var anim;
 
-        for (i = 0; i < this.anims.length; i++) {
-            anim = this.anims[i];
+        for (i = 0; i < this.timeline.anims.length; i++) {
+            anim = this.timeline.anims[i];
             var objectTrack = null;
             var propertyTrack = null;
             for (j = 0; j < this.tracks.length; j++) {
@@ -632,7 +637,7 @@ class TimelineGui {
 
             propertyTrack.anims.push(anim);
         }
-
+        
         //convert anims to keys
         for (i = 0; i < this.tracks.length; i++) {
             var track = this.tracks[i];
@@ -642,21 +647,22 @@ class TimelineGui {
                 anim = track.anims[j];
                 if (anim.delay > 0) {
                     var startValue = 0;
-                    var easing = anim.easing;
+
                     if (j === 0) {
                         startValue = track.target[track.propertyName];
                     }
                     else {
                         startValue = track.anims[j - 1].endValue;
                     }
+
                     track.keys.push({
                         time: anim.startTime,
                         value: startValue,
-                        easing: easing,
+                        easing: anim.easing,
                         track: track
                     });
                 }
-                var easingFunc = Easing.Linear.EaseNone;
+                var easingFunc = "Linear.EaseNone";
                 if (j < track.anims.length - 1) {
                     if (track.anims[j + 1].delay === 0) {
                         easingFunc = track.anims[j + 1].easing;
@@ -725,12 +731,12 @@ class TimelineGui {
             return;
         }
         var selectedOption = this.keyEditDialogEasing.options[this.keyEditDialogEasing.selectedIndex];
-        var easeType = selectedOption.value.substr(0, selectedOption.value.indexOf("."));
-        var easeBezier = selectedOption.value.substr(selectedOption.value.indexOf(".") + 1, selectedOption.value.length);
-        var easing = Easing[easeType][easeBezier];
+        // var easeType = selectedOption.value.substr(0, selectedOption.value.indexOf("."));
+        // var easeBezier = selectedOption.value.substr(selectedOption.value.indexOf(".") + 1, selectedOption.value.length);
+        // var easing = Easing[easeType][easeBezier];
         
         for (var i = 0; i < this.selectedKeys.length; i++) {
-            this.selectedKeys[i].easing = easing;
+            this.selectedKeys[i].easing = selectedOption.value;
             this.selectedKeys[i].value = value;
         }
         this.rebuildSelectedTracks();
@@ -782,9 +788,9 @@ class TimelineGui {
 
         //remove all track's anims from the timeline
         for (j = 0; j < track.anims.length; j++) {
-            var index = this.anims.indexOf(track.anims[j]);
+            var index = this.timeline.anims.indexOf(track.anims[j]);
             deletedAnims.push(track.anims[j]);
-            this.anims.splice(index, 1);
+            this.timeline.anims.splice(index, 1);
         }
 
         //remove all anims from the track
@@ -797,7 +803,7 @@ class TimelineGui {
         var delay = track.keys[0].time;
         var prevKeyTime = track.keys[0].time;
         var prevKeyValue = track.keys[0].value;
-        var prevKeyEasing = Easing.Linear.EaseNone;
+        var prevKeyEasing = "Linear.EaseNone";
         //create new anims based on keys
         for (j = 0; j < track.keys.length; j++) {
             var key = track.keys[j];
@@ -813,7 +819,7 @@ class TimelineGui {
                 easing: prevKeyEasing
             };
             track.anims.push(anim);
-            this.anims.push(anim);
+            this.timeline.anims.push(anim);
             delay = 0;
             prevKeyTime = key.time;
             prevKeyValue = key.value;
@@ -835,8 +841,8 @@ class TimelineGui {
                     code += anim.delay + ',';
                 code += '{' + '"' + anim.propertyName + '"' + ':' + anim.endValue + '}';
                 code += ',' + (anim.endTime - anim.startTime);
-                if (anim.easing != Easing.Linear.EaseNone)
-                    code += ', Timeline.Easing.' + Timeline.easingFunctionToString(anim.easing);
+                if (anim.easing != "Linear.EaseNone")
+                    code += ', Easing.' + anim.easing;
                 code += ')';
                 //code += '.to(' + anim.delay + ',{' + '"' + anim.propertyName + '"' + ':' + anim.endValue + '} ')';
             }
@@ -863,7 +869,7 @@ class TimelineGui {
 
         localStorage["timeline.js.settings.canvasHeight"] = this.canvasHeight;
         localStorage["timeline.js.settings.timeScale"] = this.timeScale;
-        localStorage["timeline.js.data." + this.name] = JSON.stringify(data);
+        localStorage["timeline.js.data." + this.timeline.name] = JSON.stringify(data);
     }
     load() {
         if (localStorage["timeline.js.settings.canvasHeight"]) {
@@ -873,7 +879,7 @@ class TimelineGui {
             this.timeScale = localStorage["timeline.js.settings.timeScale"];
         }
 
-        var dataString = localStorage["timeline.js.data." + this.name];
+        var dataString = localStorage["timeline.js.data." + this.timeline.name];
         if (!dataString) return;
         var data = JSON.parse(dataString);
 
@@ -885,11 +891,12 @@ class TimelineGui {
             if (track.type == "property") {
                 var keysData = data[track.id];
                 track.keys = [];
+
                 for (var j = 0; j < keysData.length; j++) {
                     track.keys.push({
                         time: keysData[j].time,
                         value: keysData[j].value,
-                        easing: Timeline.stringToEasingFunction(keysData[j].easing),
+                        easing: Easing[keysData[j].easing],
                         track: track
                     });
                 }

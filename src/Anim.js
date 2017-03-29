@@ -15,46 +15,12 @@ class Anim {
         this.timeline = timeline;
         this.animGroups = [];
     }
-    to() {
-        let args = [];
-        for (let i = 0; i < arguments.length; i++) {
-            args.push(arguments[i]);
-        }
-        let delay;
-        let properties;
-        let duration;
-        let easing;
-
-        if (typeof (args[0]) == "number") {
-            delay = args.shift();
-        }
-        else {
-            delay = 0;
-        }
-
-        if (typeof (args[0]) == "object") {
-            properties = args.shift();
-        }
-        else {
-            properties = {};
-        }
-
-        if (typeof (args[0]) == "number") {
-            duration = args.shift();
-        }
-        else {
-            duration = 1;
-        }
-
-        if (typeof (args[0]) == "function") {
-            easing = args.shift();
-        }
-        else {
-            easing = Easing.Linear.EaseNone;
-        }
-
+    to(delay, properties, duration, easing) {
         let animGroup = [];
-        let nop = function () { }
+        
+        if(!easing) {
+            easing = "Linear.EaseNone";
+        }
 
         for (let propertyName in properties) {
             let animInfo = {
@@ -69,14 +35,16 @@ class Anim {
                 endTime: this.timeline.time + delay + this.endTime + duration,
                 easing: easing,
                 parent: this,
-                onStart: nop,
-                onEnd: nop
+                onStart: () => {},
+                onEnd: () => {}
             };
             this.timeline.anims.push(animInfo);
             animGroup.push(animInfo);
         }
+
         this.animGroups.push(animGroup);
         this.endTime += delay + duration;
+
         return this;
     }
     onStart (callback) {
