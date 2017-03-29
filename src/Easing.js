@@ -1,5 +1,8 @@
 'use_strict';
 
+/**
+ * Bezier easing equations.
+ */
 const Easing = { 
     Linear: {
         EaseNone: function(k) {
@@ -97,17 +100,3 @@ const Easing = {
 };
 
 module.exports = Easing;
-
-// Timeline.stringToEasingFunction = function (name) {
-//     return Timeline.easingMap[name];
-// };
-
-// Timeline.easingMap = {
-// };
-
-// for (var easingFunctionFamilyName in Timeline.Easing) {
-//     var easingFunctionFamily = Timeline.Easing[easingFunctionFamilyName];
-//     for (var easingFunctionName in easingFunctionFamily) {
-//         Timeline.easingMap[easingFunctionFamilyName + "." + easingFunctionName] = easingFunctionFamily[easingFunctionName];
-//     }
-// }

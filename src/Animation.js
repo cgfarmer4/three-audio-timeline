@@ -1,7 +1,9 @@
 'use_strict';
-const Easing = require('./easing.js');
 
-class Anim {
+/**
+ * Animation 
+ */
+class Animation {
     constructor(name, target, timeline) {
         this.startTime = 0;
         this.endTime = 0;
@@ -15,6 +17,13 @@ class Anim {
         this.timeline = timeline;
         this.animGroups = [];
     }
+    /**
+     * 
+     * @param {*} delay 
+     * @param {*} properties 
+     * @param {*} duration 
+     * @param {*} easing 
+     */
     to(delay, properties, duration, easing) {
         let animGroup = [];
         
@@ -38,7 +47,7 @@ class Anim {
                 onStart: () => {},
                 onEnd: () => {}
             };
-            this.timeline.anims.push(animInfo);
+            this.timeline.animations.push(animInfo);
             animGroup.push(animInfo);
         }
 
@@ -47,6 +56,10 @@ class Anim {
 
         return this;
     }
+    /**
+     * 
+     * @param {*} callback 
+     */
     onStart (callback) {
         var currentAnimGroup = this.animGroups[this.animGroups.length - 1];
         if (!currentAnimGroup) return;
@@ -64,6 +77,10 @@ class Anim {
 
         return this;
     }
+    /**
+     * 
+     * @param {*} callback 
+     */
     onUpdate (callback) {
         var self = this;
         this.onUpdateCallback = function () {
@@ -71,6 +88,10 @@ class Anim {
         };
         return this;
     }
+    /**
+     * 
+     * @param {*} callback 
+     */
     onEnd (callback) {
         var currentAnimGroup = this.animGroups[this.animGroups.length - 1];
         if (!currentAnimGroup) return;
@@ -91,4 +112,4 @@ class Anim {
 
 }
 
-module.exports = Anim;
+module.exports = Animation;
