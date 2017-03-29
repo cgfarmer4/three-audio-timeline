@@ -1,24 +1,23 @@
 {
-  "name": "timeline-js",
-  "version": "0.0.2",
-  "description": "A compact JavaScript animation library with a GUI timeline for fast editing",
-  "main": "src/timeline.js",
-  "directories": {
-    "example": "examples",
-    "test": "tests"
+  "name": "three-audio-timeline",
+  "version": "0.0.1",
+  "description": "A JavaScript animation library",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/vorg/timeline.js.git"
+    "url": ""
   },
   "keywords": [
     "timeline",
     "animation"
   ],
-  "author": "vorg <marcin.ignac@gmail.com>",
+  "author": "Apaix",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/vorg/timeline.js/issues"
+    "url": ""
   },
-  "homepage": "https://github.com/vorg/timeline.js"
+  "homepage": ""
 }

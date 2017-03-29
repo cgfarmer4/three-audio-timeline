@@ -1,4 +1,4 @@
-# Timeline.js
+# Three-Audio-Timeline
 
 A compact JavaScript animation library with a GUI timeline for fast editing.
 
