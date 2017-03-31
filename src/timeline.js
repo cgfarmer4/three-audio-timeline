@@ -17,12 +17,6 @@ class Timeline extends EventEmitter {
         this.loopCount = 0;
         this.loopMode = -1;
         this.playing = true;
-
-        //TODO- Move to request REQUESTANIMFRAME
-        this.fps = 30;
-        this.loopInterval = setInterval(() => {
-            this.update();
-        }, 1000 / this.fps);
     }
     /**
      * Possible values of n:
@@ -61,16 +55,6 @@ class Timeline extends EventEmitter {
      * @param {Number} deltaTime 
      */
     update(deltaTime) {
-        if (deltaTime !== undefined) {
-            if (this.loopInterval !== 0) {
-                clearInterval(this.loopInterval);
-                this.loopInterval = 0;
-            }
-        }
-        else {
-            deltaTime = 1 / this.fps;
-        }
-
         //Let the GUI know the Timeline changed.
         this.emit('update');
 
