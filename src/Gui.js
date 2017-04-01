@@ -432,14 +432,9 @@ class TimelineGui {
         this.c.lineTo(0, this.canvas.height - this.timeScrollHeight);
         this.c.clip();
         
-        for (var i = 0; i < this.tracks.length; i++) {
-            // var yshift = this.headerHeight + this.trackLabelHeight * (i + 1);
-            // var scrollY = this.tracksScrollY * (this.tracks.length * this.trackLabelHeight - this.canvas.height + this.headerHeight);
-            // yshift -= scrollY;
-            // if (yshift < this.headerHeight) continue;
-            debugger;
-            this.drawTrack(this.tracks[i], this.yshift);
-        }
+        this.tracks.forEach((track) => {
+            this.drawTrack(track, this.yshift);
+        });
 
         this.c.restore();
 
@@ -536,58 +531,108 @@ class TimelineGui {
     drawTrack(track, y) {
         let xshift = 5;
 
-        if (track.type === 'keyframe') {
-            //object track header background
-            this.drawRect(0, y - this.trackLabelHeight + 1, this.trackLabelWidth, this.trackLabelHeight - 1, '#FFFFFF');
+        switch(track.type) {
+            case 'keyframe':
+                //object track header background
+                this.drawRect(0, y - this.trackLabelHeight + 1, this.trackLabelWidth, this.trackLabelHeight - 1, '#FFFFFF');
 
-            //label color
-            this.c.fillStyle = '#000000';
+                //label color
+                this.c.fillStyle = '#000000';
 
-            //bottom track line
-            this.drawLine(0, y, this.canvas.width, y, '#FFFFFF');
-
-            //draw track label
-            this.c.fillText(track.targetName, xshift, y - this.trackLabelHeight / 4);
-
-            // Shift label position and change bg color
-            xshift += 10;
-            this.keysMap = {};
-
-            // Map modified property names to tracks.
-            track.keys.forEach((key) => {
-                if (!this.keysMap[key.name]) {
-                    this.keysMap[key.name] = {
-                        keys: [],
-                        position: 0
-                    };
-                }
-                this.keysMap[key.name].keys.push(key);
-            })
-
-            // Iterate the keys map to draw the frames
-            for (let keyframe in this.keysMap) {
-                y += this.trackLabelHeight;
-                this.keysMap[keyframe].position = y;
-
-                this.c.fillStyle = '#555555';
-                this.c.fillText(keyframe, xshift, y - this.trackLabelHeight / 4);
+                //bottom track line
                 this.drawLine(0, y, this.canvas.width, y, '#FFFFFF');
 
-                this.keysMap[keyframe].keys.forEach((keyProperties, i) => {
-                    let selected = false;
-                    if (this.selectedKeys.indexOf(keyProperties) > -1) {
-                        selected = true;
+                //draw track label
+                this.c.fillText(track.targetName, xshift, y - this.trackLabelHeight / 4);
+
+                // Shift label position and change bg color
+                xshift += 10;
+                this.keysMap = {};
+
+                // Map modified property names to tracks.
+                track.keys.forEach((key) => {
+                    if (!this.keysMap[key.name]) {
+                        this.keysMap[key.name] = {
+                            keys: [],
+                            position: 0
+                        };
                     }
-
-                    let first = (i === 0);
-                    let last = (i == this.keysMap[keyframe].length - 1);
-
-                    this.drawRombus(this.timeToX(keyProperties.startTime), this.keysMap[keyframe].position - this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, "#999999", true, true, selected ? "#FF0000" : "#666666");
-                    this.drawRombus(this.timeToX(keyProperties.startTime), this.keysMap[keyframe].position - this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, "#DDDDDD", !first, !last);
+                    this.keysMap[key.name].keys.push(key);
                 })
 
-                this.yshift = this.keysMap[keyframe].position + this.trackLabelHeight;
-            }
+                // Iterate the keys map to draw the frames
+                for (let keyframe in this.keysMap) {
+                    y += this.trackLabelHeight;
+                    this.keysMap[keyframe].position = y;
+
+                    this.c.fillStyle = '#555555';
+                    this.c.fillText(keyframe, xshift, y - this.trackLabelHeight / 4);
+                    this.drawLine(0, y, this.canvas.width, y, '#FFFFFF');
+
+                    this.keysMap[keyframe].keys.forEach((keyProperties, i) => {
+                        let selected = false;
+                        if (this.selectedKeys.indexOf(keyProperties) > -1) {
+                            selected = true;
+                        }
+
+                        let first = (i === 0);
+                        let last = (i == this.keysMap[keyframe].length - 1);
+
+                        this.drawRombus(this.timeToX(keyProperties.startTime), this.keysMap[keyframe].position - this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, "#999999", true, true, selected ? "#FF0000" : "#666666");
+                        this.drawRombus(this.timeToX(keyProperties.startTime), this.keysMap[keyframe].position - this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, "#DDDDDD", !first, !last);
+                    })
+
+                    this.yshift = this.keysMap[keyframe].position + this.trackLabelHeight;
+                }
+                break;
+
+            case 'number':
+                const numberLabelHeight = 50;
+                //object track header background
+                this.drawRect(0, y - numberLabelHeight / 2, this.trackLabelWidth, numberLabelHeight - 1, '#FFFFFF');
+                //middle track line
+                this.drawLine(0, y, this.canvas.width, y, '#FFFFFF');
+                //bottom
+                this.drawLine(0, y + numberLabelHeight / 2 - 1, this.canvas.width, y + numberLabelHeight / 2 - 1, '#FFFFFF');
+                //label color
+                this.c.fillStyle = '#000000';
+
+                //draw track label
+                this.c.fillText(track.targetName, xshift, y + 5);
+
+                this.c.strokeStyle = '#000000';
+                this.c.beginPath();
+                this.c.moveTo(this.timeToX(0), this.yshift);
+
+                track.data.forEach((dataPoint, index) => {
+                    this.c.lineTo(this.timeToX(0) + index * 100, this.yshift + dataPoint / 5);
+                })
+
+                this.c.stroke();
+                this.yshift += numberLabelHeight - 5;
+                break;
+
+            case 'position':
+                const positionLabelHeight = 80;
+
+                //object track header background
+                this.drawRect(0, y - positionLabelHeight / 2, this.trackLabelWidth, positionLabelHeight - 1, '#FFFFFF');
+                //middle track line
+                this.drawLine(0, y, this.canvas.width, y, '#FFFFFF');
+                //bottom
+                this.drawLine(0, y + positionLabelHeight / 2 - 1, this.canvas.width, y + positionLabelHeight / 2 - 1, '#FFFFFF');
+                //label color
+                this.c.fillStyle = '#000000';
+
+                //draw track name label
+                this.c.fillText(track.targetName, xshift, y + 5);
+                //draw track position labels.
+
+
+                break;
+
+            default:
+                break;
         }
     }
     /**

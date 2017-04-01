@@ -107,6 +107,7 @@ class Timeline extends EventEmitter {
      */
     applyValues() {
         for (let i = 0; i < this.tracks.length; i++) {
+            if(this.tracks[i].type !== 'keyframe') continue;
             for (let z = 0; z < this.tracks[i].keys.length; z++) {
                 let currentTrack = this.tracks[i].keys[z];
 
