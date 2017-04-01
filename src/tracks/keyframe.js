@@ -5,13 +5,17 @@
  */
 class Keyframe {
     constructor(name, target, timeline) {
-        this.name = name;
+        this.id = name;
+        this.type = 'keyframe';
+        this.targetName = name;
         this.target = target;
         this.timeline = timeline;
         
         this.startTime = 0;
         this.endTime = 0;
         this.time = 0;
+        this.keys = [];
+        this.timeline.tracks.push(this);
     }
     /**
      * 
@@ -28,9 +32,11 @@ class Keyframe {
         for (let propertyName in properties) {
 
             let keyframeInfo = {
+                id: this.targetName + "." + propertyName,
                 hasStarted: false,
                 timeline: this.timeline,
-                targetName: this.name,
+                name: propertyName,
+                targetName: this.targetName,
                 target: this.target,
                 propertyName: propertyName,
                 endValue: properties[propertyName],
@@ -39,11 +45,12 @@ class Keyframe {
                 endTime: this.timeline.time + delay + this.endTime + duration,
                 easing: easing,
                 parent: this,
+                properties: [],
                 onStart: () => { },
                 onEnd: () => { }
             };
 
-            this.timeline.animations.push(keyframeInfo);
+            this.keys.push(keyframeInfo);
         }
 
         this.endTime += delay + duration;

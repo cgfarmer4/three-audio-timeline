@@ -25,6 +25,7 @@ class TimelineGui {
         this.timeScrollX = 0;
         this.headerHeight = 30;
         this.canvasHeight = 200;
+        this.yshift = this.headerHeight + this.trackLabelHeight;
         this.draggingTime = false;
         this.draggingTracksScrollThumb = false;
         this.draggingTimeScrollThumb = false;
@@ -32,8 +33,8 @@ class TimelineGui {
         this.draggingTimeScale = false;
         this.selectedKeys = [];
         this.timeScale = 1;
-
         this.trackNameCounter = 0;
+        this.tracks = [];
         this.initTracks();
         // this.load();
 
@@ -53,7 +54,7 @@ class TimelineGui {
         this.canvas = document.createElement("canvas");
         this.c = this.canvas.getContext("2d");
         this.canvas.width = 0;
-        this.container.appendChild(this.canvas);        
+        this.container.appendChild(this.canvas);
 
         //- GUI Events
         this.timeline.on('update', this.updateGUI.bind(this));
@@ -152,7 +153,7 @@ class TimelineGui {
 
         if (this.draggingTime) {
             this.time = this.xToTime(x);
-            var animationEnd = this.findAnimationEnd();
+            var animationEnd = this.timeline.findAnimationEnd();
             if (this.time < 0) this.time = 0;
             if (this.time > animationEnd) this.time = animationEnd;
         }
@@ -367,6 +368,7 @@ class TimelineGui {
      * 
      */
     updateGUI() {
+        this.yshift = this.headerHeight + this.trackLabelHeight;
         this.canvas.width = window.innerWidth;
         this.canvas.height = this.canvasHeight;
         var w = this.canvas.width;
@@ -378,7 +380,7 @@ class TimelineGui {
         this.tracksScrollThumbHeight = Math.min(Math.max(20, this.tracksScrollHeight * tracksScrollRatio), this.tracksScrollHeight);
 
         this.timeScrollWidth = this.canvas.width - this.trackLabelWidth - this.tracksScrollWidth;
-        var animationEnd = this.findAnimationEnd();
+        var animationEnd = this.timeline.findAnimationEnd();
         var visibleTime = this.xToTime(this.canvas.width - this.trackLabelWidth - this.tracksScrollWidth) - this.xToTime(0); //100 to get some space after lask key
         var timeScrollRatio = Math.max(0, Math.min(visibleTime / animationEnd, 1));
         this.timeScrollThumbWidth = timeScrollRatio * this.timeScrollWidth;
@@ -429,13 +431,14 @@ class TimelineGui {
         this.c.lineTo(this.canvas.width, this.canvas.height - this.timeScrollHeight);
         this.c.lineTo(0, this.canvas.height - this.timeScrollHeight);
         this.c.clip();
-
+        
         for (var i = 0; i < this.tracks.length; i++) {
-            var yshift = this.headerHeight + this.trackLabelHeight * (i + 1);
-            var scrollY = this.tracksScrollY * (this.tracks.length * this.trackLabelHeight - this.canvas.height + this.headerHeight);
-            yshift -= scrollY;
-            if (yshift < this.headerHeight) continue;
-            this.drawTrack(this.tracks[i], yshift);
+            // var yshift = this.headerHeight + this.trackLabelHeight * (i + 1);
+            // var scrollY = this.tracksScrollY * (this.tracks.length * this.trackLabelHeight - this.canvas.height + this.headerHeight);
+            // yshift -= scrollY;
+            // if (yshift < this.headerHeight) continue;
+            debugger;
+            this.drawTrack(this.tracks[i], this.yshift);
         }
 
         this.c.restore();
@@ -444,7 +447,6 @@ class TimelineGui {
         this.drawLine(this.trackLabelWidth, 0, this.trackLabelWidth, h, "#000000");
 
         //timeline
-
         var timelineStart = 0;
         var timelineEnd = 10;
         var lastTimeLabelX = 0;
@@ -505,22 +507,10 @@ class TimelineGui {
     }
     /**
      * 
-     */
-    findAnimationEnd() {
-        var endTime = 0;
-        for (var i = 0; i < this.timeline.animations.length; i++) {
-            if (this.timeline.animations[i].endTime > endTime) {
-                endTime = this.timeline.animations[i].endTime;
-            }
-        }
-        return endTime;
-    }
-    /**
-     * 
      * @param {*} time 
      */
     timeToX(time) {
-        var animationEnd = this.findAnimationEnd();
+        var animationEnd = this.timeline.findAnimationEnd();
         var visibleTime = this.xToTime(this.canvas.width - this.trackLabelWidth - this.tracksScrollWidth) - this.xToTime(20); //50 to get some additional space
         if (visibleTime < animationEnd) {
             time -= (animationEnd - visibleTime) * this.timeScrollX;
@@ -533,7 +523,7 @@ class TimelineGui {
      * @param {*} x 
      */
     xToTime(x) {
-        var animationEnd = this.findAnimationEnd();
+        var animationEnd = this.timeline.findAnimationEnd();
         var visibleTime = (this.canvas.width - this.trackLabelWidth - this.tracksScrollWidth - 20) / (this.timeScale * 200);
         var timeShift = Math.max(0, (animationEnd - visibleTime) * this.timeScrollX);
         return (x - this.trackLabelWidth - 10) / (this.timeScale * 200) + timeShift;
@@ -544,36 +534,59 @@ class TimelineGui {
      * @param {*} y 
      */
     drawTrack(track, y) {
-        var xshift = 5;
-        if (track.type == "object") {
+        let xshift = 5;
+
+        if (track.type === 'keyframe') {
             //object track header background
-            this.drawRect(0, y - this.trackLabelHeight + 1, this.trackLabelWidth, this.trackLabelHeight - 1, "#FFFFFF");
+            this.drawRect(0, y - this.trackLabelHeight + 1, this.trackLabelWidth, this.trackLabelHeight - 1, '#FFFFFF');
+
             //label color
-            this.c.fillStyle = "#000000";
-        }
-        else {
+            this.c.fillStyle = '#000000';
+
+            //bottom track line
+            this.drawLine(0, y, this.canvas.width, y, '#FFFFFF');
+
+            //draw track label
+            this.c.fillText(track.targetName, xshift, y - this.trackLabelHeight / 4);
+
+            // Shift label position and change bg color
             xshift += 10;
-            //label color
-            this.c.fillStyle = "#555555";
-        }
+            this.keysMap = {};
 
-        //bottom track line
-        this.drawLine(0, y, this.canvas.width, y, "#FFFFFF");
-        //draw track label
-        this.c.fillText(track.name, xshift, y - this.trackLabelHeight / 4);
-
-        //if it's property track then draw anims
-        if (track.type == "property") {
-            for (var i = 0; i < track.keys.length; i++) {
-                var key = track.keys[i];
-                var selected = false;
-                if (this.selectedKeys.indexOf(key) > -1) {
-                    selected = true;
+            // Map modified property names to tracks.
+            track.keys.forEach((key) => {
+                if (!this.keysMap[key.name]) {
+                    this.keysMap[key.name] = {
+                        keys: [],
+                        position: 0
+                    };
                 }
-                var first = (i === 0);
-                var last = (i == track.keys.length - 1);
-                this.drawRombus(this.timeToX(key.time), y - this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, "#999999", true, true, selected ? "#FF0000" : "#666666");
-                this.drawRombus(this.timeToX(key.time), y - this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, "#DDDDDD", !first, !last);
+                this.keysMap[key.name].keys.push(key);
+            })
+
+            // Iterate the keys map to draw the frames
+            for (let keyframe in this.keysMap) {
+                y += this.trackLabelHeight;
+                this.keysMap[keyframe].position = y;
+
+                this.c.fillStyle = '#555555';
+                this.c.fillText(keyframe, xshift, y - this.trackLabelHeight / 4);
+                this.drawLine(0, y, this.canvas.width, y, '#FFFFFF');
+
+                this.keysMap[keyframe].keys.forEach((keyProperties, i) => {
+                    let selected = false;
+                    if (this.selectedKeys.indexOf(keyProperties) > -1) {
+                        selected = true;
+                    }
+
+                    let first = (i === 0);
+                    let last = (i == this.keysMap[keyframe].length - 1);
+
+                    this.drawRombus(this.timeToX(keyProperties.startTime), this.keysMap[keyframe].position - this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, "#999999", true, true, selected ? "#FF0000" : "#666666");
+                    this.drawRombus(this.timeToX(keyProperties.startTime), this.keysMap[keyframe].position - this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, "#DDDDDD", !first, !last);
+                })
+
+                this.yshift = this.keysMap[keyframe].position + this.trackLabelHeight;
             }
         }
     }
@@ -627,7 +640,7 @@ class TimelineGui {
      * @param {*} drawRight 
      * @param {*} strokeColor 
      */
-    drawRombus(x,  y,  w, h, color, drawLeft, drawRight, strokeColor) {
+    drawRombus(x, y, w, h, color, drawLeft, drawRight, strokeColor) {
         this.c.fillStyle = color;
         if (strokeColor) {
             this.c.lineWidth = 2;
@@ -659,118 +672,18 @@ class TimelineGui {
         }
     }
     /**
+     * Iterate the different track types and set them up for the GUI
+     * 
+     * Object Tracks: Parent track that contains the element to be manipulated.
+     * Keyframe Tracks: Properties of the parent object that are being manipulated on a keyframe basis.
+     * Position Tracks: Properties of the parent object that contain positional x,y,z values
+     * Number Tracks: Properties of the parent object that contains integers or floats
      * 
      */
     initTracks() {
-        this.tracks = [];
-        var i, j;
-        var anim;
-
-        for (i = 0; i < this.timeline.animations.length; i++) {
-            anim = this.timeline.animations[i];
-            var objectTrack = null;
-            var propertyTrack = null;
-            for (j = 0; j < this.tracks.length; j++) {
-                if (this.tracks[j].type == "object" && this.tracks[j].target == anim.target) {
-                    objectTrack = this.tracks[j];
-                }
-                if (this.tracks[j].type == "property" && this.tracks[j].target == anim.target && this.tracks[j].propertyName == anim.propertyName) {
-                    propertyTrack = this.tracks[j];
-                }
-            }
-            if (!objectTrack) {
-                objectTrack = {
-                    type: "object",
-                    id: anim.targetName,
-                    name: anim.targetName,
-                    target: anim.target,
-                    propertyTracks: []
-                };
-                if (!objectTrack.name) {
-                    objectTrack.name = "Object" + this.trackNameCounter++;
-                }
-                this.tracks.push(objectTrack);
-            }
-
-            if (!propertyTrack) {
-                propertyTrack = {
-                    type: "property",
-                    id: objectTrack.name + "." + anim.propertyName,
-                    name: anim.propertyName,
-                    propertyName: anim.propertyName,
-                    target: anim.target,
-                    parent: objectTrack,
-                    anims: []
-                };
-
-                //find place to insert
-                var parentObjectTrack = null;
-                var nextObjectTrack = null;
-                for (var k = 0; k < this.tracks.length; k++) {
-                    if (this.tracks[k].type == "object") {
-                        if (parentObjectTrack && !nextObjectTrack) {
-                            nextObjectTrack = this.tracks[k];
-                        }
-                        if (this.tracks[k].target == propertyTrack.target) {
-                            parentObjectTrack = this.tracks[k];
-                        }
-                    }
-                }
-
-                if (nextObjectTrack) {
-                    //add ad the end of this object property tracks, just before next one
-                    var nextTrackIndex = this.tracks.indexOf(nextObjectTrack);
-                    this.tracks.splice(nextTrackIndex, 0, propertyTrack);
-                }
-                else {
-                    //add to end of all track
-                    this.tracks.push(propertyTrack);
-                }
-
-                parentObjectTrack.propertyTracks.push(propertyTrack);
-
-            }
-
-            propertyTrack.anims.push(anim);
-        }
-        
-        //convert anims to keys
-        for (i = 0; i < this.tracks.length; i++) {
-            var track = this.tracks[i];
-            track.keys = [];
-            if (track.type == "object") continue;
-            for (j = 0; j < track.anims.length; j++) {
-                anim = track.anims[j];
-                if (anim.delay > 0) {
-                    var startValue = 0;
-
-                    if (j === 0) {
-                        startValue = track.target[track.propertyName];
-                    }
-                    else {
-                        startValue = track.anims[j - 1].endValue;
-                    }
-
-                    track.keys.push({
-                        time: anim.startTime,
-                        value: startValue,
-                        easing: anim.easing,
-                        track: track
-                    });
-                }
-                var easingFunc = "Linear.EaseNone";
-                if (j < track.anims.length - 1) {
-                    if (track.anims[j + 1].delay === 0) {
-                        easingFunc = track.anims[j + 1].easing;
-                    }
-                }
-                track.keys.push({
-                    time: anim.endTime,
-                    value: anim.endValue,
-                    easing: easingFunc,
-                    track: track
-                });
-            }
+        for (let i = 0; i < this.timeline.tracks.length; i++) {
+            let track = this.timeline.tracks[i];
+            this.tracks.push(track);
         }
     }
     /**
@@ -836,7 +749,7 @@ class TimelineGui {
         // var easeType = selectedOption.value.substr(0, selectedOption.value.indexOf("."));
         // var easeBezier = selectedOption.value.substr(selectedOption.value.indexOf(".") + 1, selectedOption.value.length);
         // var easing = Easing[easeType][easeBezier];
-        
+
         for (var i = 0; i < this.selectedKeys.length; i++) {
             this.selectedKeys[i].easing = selectedOption.value;
             this.selectedKeys[i].value = value;
@@ -912,9 +825,9 @@ class TimelineGui {
 
         //remove all track's anims from the timeline
         for (j = 0; j < track.anims.length; j++) {
-            var index = this.timeline.animations.indexOf(track.anims[j]);
+            var index = this.timeline.tracks.indexOf(track.anims[j]);
             deletedAnims.push(track.anims[j]);
-            this.timeline.animations.splice(index, 1);
+            this.timeline.tracks.splice(index, 1);
         }
 
         //remove all anims from the track
@@ -943,7 +856,7 @@ class TimelineGui {
                 easing: prevKeyEasing
             };
             track.anims.push(anim);
-            this.timeline.animations.push(anim);
+            this.timeline.tracks.push(anim);
             delay = 0;
             prevKeyTime = key.time;
             prevKeyValue = key.value;
@@ -1021,7 +934,7 @@ class TimelineGui {
             if (!data[track.id]) {
                 continue;
             }
-            if (track.type == "property") {
+            if (track.type == "keyframe") {
                 var keysData = data[track.id];
                 track.keys = [];
 
@@ -1037,6 +950,6 @@ class TimelineGui {
             }
         }
     }
-} 
+}
 
 module.exports = TimelineGui;
