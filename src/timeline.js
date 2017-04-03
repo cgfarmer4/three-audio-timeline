@@ -73,6 +73,7 @@ class Timeline extends EventEmitter {
                     this.loopCount++;
                     
                     for (let i = 0; i < this.tracks.length; i++) {
+                        if (!this.tracks[i].keys) continue;
                         this.tracks[i].keys.forEach(function(key, index, returnArr) {
                             returnArr[index].hasStarted = false;
                             returnArr[index].hasEnded = false;
@@ -106,8 +107,8 @@ class Timeline extends EventEmitter {
      * Iterate animation values and apply the values with the proper duration and easing.
      */
     applyValues() {
-        for (let i = 0; i < this.tracks.length; i++) {
-            if(this.tracks[i].type !== 'keyframe') continue;
+        for (let i = 0; i < this.tracks.length; i++) {this.tracks[i].keys
+            if(!this.tracks[i].keys) continue;
             for (let z = 0; z < this.tracks[i].keys.length; z++) {
                 let currentTrack = this.tracks[i].keys[z];
 

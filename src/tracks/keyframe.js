@@ -11,6 +11,7 @@ class Keyframe {
         this.target = target;
         this.timeline = timeline;
         
+        this.labelHeight = 20;
         this.startTime = 0;
         this.endTime = 0;
         this.time = 0;
@@ -42,10 +43,10 @@ class Keyframe {
                 endValue: properties[propertyName],
                 delay: delay,
                 startTime: this.timeline.time + delay + this.endTime,
+                time: this.timeline.time + delay + this.endTime,
                 endTime: this.timeline.time + delay + this.endTime + duration,
                 easing: easing,
                 parent: this,
-                properties: [],
                 onStart: () => { },
                 onEnd: () => { }
             };
