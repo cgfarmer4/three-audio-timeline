@@ -356,7 +356,7 @@ class TimelineGui {
                     });
 
                     this.currentY += track.labelHeight;
-                    debugger;
+
                     for (let key in keysMap) {
 
                         this.heightMap.push({
@@ -376,7 +376,6 @@ class TimelineGui {
         for(let z = 0; z < this.heightMap.length; z++) {
             let trackGuiDisplay = this.heightMap[z];
             if (mouseY >= trackGuiDisplay.startY && mouseY <= trackGuiDisplay.endY) {
-                debugger;
                 return this.heightMap[z];
             }
         }
@@ -579,22 +578,22 @@ class TimelineGui {
         switch(track.type) {
             case 'keyframe':
                 //object track header background
-                this.drawRect(0, y + 1, this.trackLabelWidth, this.trackLabelHeight + 1, '#FFFFFF');
+                this.drawRect(0, y + 1, this.trackLabelWidth, this.trackLabelHeight, '#FFFFFF');
 
                 //label color
                 this.c.fillStyle = '#000000';
 
                 //bottom track line
-                this.drawLine(0, y - this.trackLabelHeight - 1, this.canvas.width, y - this.trackLabelHeight -1, '#FFFFFF');
+                this.drawLine(0, y - this.trackLabelHeight, this.canvas.width, y - this.trackLabelHeight, '#FFFFFF');
 
                 //draw track label
-                this.c.fillText(track.targetName, xshift, y + this.trackLabelHeight / 2 + 4);
+                this.c.fillText(track.targetName +"-"+ y, xshift, y + this.trackLabelHeight / 2 + 4);
 
                 // Shift label position and change bg color
                 xshift += 10;
                 this.keysMap = {};
 
-                this.yshift = y += this.trackLabelHeight + 1;
+                this.yshift = y += this.trackLabelHeight;
 
                 // Map modified property names to tracks.
                 track.keys.forEach((key) => {
@@ -609,11 +608,11 @@ class TimelineGui {
                 
                 // Iterate the keys map to draw the frames
                 for (let keyframe in this.keysMap) {
-                    y += this.trackLabelHeight + 1;
+                    y += this.trackLabelHeight;
                     this.keysMap[keyframe].position = y;
 
                     this.c.fillStyle = '#555555';
-                    this.c.fillText(keyframe, xshift, y - this.trackLabelHeight / 4);
+                    this.c.fillText(keyframe + "-" + y, xshift, y - this.trackLabelHeight / 4);
                     this.drawLine(0, y, this.canvas.width, y, '#FFFFFF');
 
                     this.keysMap[keyframe].keys.forEach((keyProperties, i) => {
