@@ -8,7 +8,7 @@ class Position {
         this.id = name;
         this.targetName = name;
         this.timeline = timeline;
-
+        this.labelHeight = 90;
         this.type = 'position';
         this.sampleRate = 1;
 
