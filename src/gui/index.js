@@ -535,6 +535,8 @@ class TimelineGui {
      */
     drawTrack(track, y) {
         let xshift = 5;
+        let prevX = 0;
+        let prevY = 0;
 
         switch (track.type) {
             case 'keyframe':
@@ -591,79 +593,146 @@ class TimelineGui {
             case 'number':
                 //object track header background
                 this.drawRect(0, y, this.trackLabelWidth, track.labelHeight + 1, '#FFFFFF');
-                //middle track line
-                this.drawLine(0, y + track.labelHeight / 2 - 1, this.canvas.width, y + track.labelHeight / 2 - 1, '#FFFFFF');
                 //bottom
-                this.drawLine(0, y + + track.labelHeight, this.canvas.width, y + + track.labelHeight, '#333333');
+                this.drawLine(0, y + track.labelHeight, this.canvas.width, y + + track.labelHeight, '#333333');
                 //label color
                 this.c.fillStyle = '#000000';
 
                 //draw track label
                 this.c.fillText(track.targetName, xshift, y + track.labelHeight / 2);
 
-                this.c.strokeStyle = '#000000';
-                this.c.beginPath();
-                this.c.moveTo(this.timeToX(0), this.yshift);
+                prevX = this.timeToX(0);
+                prevY = this.yshift + track.labelHeight;
 
                 track.data.forEach((dataPoint, index) => {
-                    this.c.lineTo(this.timeToX(0) + index * 100, this.yshift + dataPoint / 5);
+                    let xStart = this.timeToX(track.sampleRate * index);
+                    let yStart = this.yshift + track.labelHeight - (dataPoint * (track.labelHeight / track.max));
+
+                    this.drawLine(xStart, yStart, prevX, prevY, '#000000')
+                    
+                    // circle
+                    this.c.beginPath();
+                    this.c.arc(xStart, yStart, 2, 0, 2 * Math.PI, false);
+                    this.c.fill();
+                    this.c.stroke();
+                    this.c.closePath();
+
+                    prevX = xStart;
+                    prevY = yStart;
                 })
 
-                this.c.stroke();
                 this.yshift += track.labelHeight;
                 break;
 
-            case 'position':
+            // The position colors match the AxixHelper API in THREE
+            case 'position': 
                 //object track header background
                 this.drawRect(0, y, this.trackLabelWidth, track.labelHeight + 1, '#FFFFFF');
-                this.drawLine(this.trackLabelWidth, y + track.labelHeight / 3, this.canvas.width, y + track.labelHeight / 3, '#0000FF');
-                this.drawLine(this.trackLabelWidth, y + (track.labelHeight / 3) * 2, this.canvas.width, y + (track.labelHeight / 3) * 2, '#0000FF');
-                this.drawLine(this.trackLabelWidth, y + track.labelHeight, this.canvas.width, y + track.labelHeight, '#333333');
+                
+                //middle x line
+                let middleOfX = y + (track.labelHeight / 3) / 2;
+                this.drawLine(this.trackLabelWidth, middleOfX, this.canvas.width, middleOfX, '#FFFFFF');
+                //bottom x line
+                this.drawLine(this.trackLabelWidth, y + track.labelHeight / 3, this.canvas.width, y + track.labelHeight / 3, '#000000');
+
+                //middle y line
+                let middleOfY = y + (track.labelHeight / 3) * 2 - (track.labelHeight / 3 / 2);
+                this.drawLine(this.trackLabelWidth, middleOfY, this.canvas.width, middleOfY, '#FFFFFF');
+
+                //bottom y line
+                this.drawLine(this.trackLabelWidth, y + (track.labelHeight / 3) * 2, this.canvas.width, y + (track.labelHeight / 3) * 2, '#000000');
+                
+                //middle z line
+                let middleOfZ = y + (track.labelHeight / 3) + (track.labelHeight / 2);
+                this.drawLine(this.trackLabelWidth, middleOfZ, this.canvas.width, middleOfZ, '#FFFFFF');
+                //bottom z line
+                this.drawLine(this.trackLabelWidth, y + track.labelHeight, this.canvas.width, y + track.labelHeight, '#000000');
+                
                 //label color
                 this.c.fillStyle = '#000000';
 
                 //draw track name label
                 this.c.fillText(track.targetName, xshift, y + track.labelHeight / 2);
+                
                 //draw track position labels.
-                this.c.fillText('x', this.trackLabelWidth - 10, y + track.labelHeight / 3 - 5);
-                this.c.fillText('y', this.trackLabelWidth - 10, y + (track.labelHeight / 3) * 2 - 5);
-                this.c.fillText('z', this.trackLabelWidth - 10, y + track.labelHeight - 5);
+                this.c.fillStyle = '#FF0000';
+                this.c.fillText('x', this.trackLabelWidth - 10, y + track.labelHeight / 3 - 10);
+                
+                this.c.fillStyle = '#008000';
+                this.c.fillText('y', this.trackLabelWidth - 10, y + (track.labelHeight / 3) * 2 - 10);
+                
+                this.c.fillStyle = '#0000FF';
+                this.c.fillText('z', this.trackLabelWidth - 10, y + track.labelHeight - 10);
 
                 this.c.strokeStyle = '#000000';
 
                 //draw x graph
-                this.c.beginPath();
-                this.c.moveTo(this.timeToX(0), this.yshift);
+                prevX = this.timeToX(0);
+                prevY = middleOfX;
 
                 track.data.x.forEach((dataPoint, index) => {
-                    this.c.lineTo(this.timeToX(0) + index * 100, this.yshift + dataPoint / 5);
+                    let xStart = this.timeToX(track.sampleRate * index);
+                    let yStart = this.yshift + (track.labelHeight / 6) - (dataPoint * ((track.labelHeight / 3 / 2) / track.max));
+
+                    this.drawLine(xStart, yStart, prevX, prevY, '#FF0000')
+
+                    // circle
+                    this.c.beginPath();
+                    this.c.arc(xStart, yStart, 2, 0, 2 * Math.PI, false);
+                    this.c.fill();
+                    this.c.stroke();
+                    this.c.closePath();
+
+                    prevX = xStart;
+                    prevY = yStart;
                 })
 
-                this.c.stroke();
                 this.yshift += track.labelHeight / 3;
-
+                
                 //draw y graph
-                this.c.beginPath();
-                this.c.moveTo(this.timeToX(0), this.yshift);
+                prevX = this.timeToX(0);
+                prevY = middleOfY;
 
                 track.data.y.forEach((dataPoint, index) => {
-                    this.c.lineTo(this.timeToX(0) + index * 100, this.yshift + dataPoint / 5);
+                    let xStart = this.timeToX(track.sampleRate * index);
+                    let yStart = this.yshift + (track.labelHeight / 6) - (dataPoint * ((track.labelHeight / 3 / 2) / track.max));
+
+                    this.drawLine(xStart, yStart, prevX, prevY, '#008000')
+
+                    // circle
+                    this.c.beginPath();
+                    this.c.arc(xStart, yStart, 2, 0, 2 * Math.PI, false);
+                    this.c.fill();
+                    this.c.stroke();
+                    this.c.closePath();
+
+                    prevX = xStart;
+                    prevY = yStart;
                 })
 
-                this.c.stroke();
                 this.yshift += track.labelHeight / 3;
-
+                
                 //draw z graph
-                this.c.beginPath();
-                this.c.moveTo(this.timeToX(0), this.yshift);
+                prevX = this.timeToX(0);
 
                 track.data.z.forEach((dataPoint, index) => {
-                    this.c.lineTo(this.timeToX(0) + index * 100, this.yshift + dataPoint / 5);
+                    let xStart = this.timeToX(track.sampleRate * index);
+                    let yStart = this.yshift + (track.labelHeight / 6) - (dataPoint * ((track.labelHeight / 3 / 2) / track.max));
+
+                    this.drawLine(xStart, yStart, prevX, prevY, '#0000FF')
+
+                    // circle
+                    this.c.beginPath();
+                    this.c.arc(xStart, yStart, 2, 0, 2 * Math.PI, false);
+                    this.c.fill();
+                    this.c.stroke();
+                    this.c.closePath();
+
+                    prevX = xStart;
+                    prevY = yStart;
                 })
 
-                this.c.stroke();
                 this.yshift += track.labelHeight / 3;
-
                 break;
 
             default:
@@ -678,12 +747,13 @@ class TimelineGui {
      * @param {*} y2 
      * @param {*} color 
      */
-    drawLine(x1, y1, x2, y2, color) {
+    drawLine(startX, startY, endX, endY, color) {
         this.c.strokeStyle = color;
         this.c.beginPath();
-        this.c.moveTo(x1 + 0.5, y1 + 0.5);
-        this.c.lineTo(x2 + 0.5, y2 + 0.5);
+        this.c.moveTo(startX + 0.5, startY + 0.5);
+        this.c.lineTo(endX + 0.5, endY + 0.5);
         this.c.stroke();
+        this.c.closePath();
     }
     /**
      * 
