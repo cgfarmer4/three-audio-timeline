@@ -15,6 +15,8 @@ class Keyframe {
         this.startTime = 0;
         this.endTime = 0;
         this.time = 0;
+        this.isFollowing = false;
+        this.followTrack = {};
         this.keys = [];
         this.timeline.tracks.push(this);
     }
