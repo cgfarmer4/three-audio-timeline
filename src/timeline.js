@@ -71,10 +71,10 @@ class Timeline extends EventEmitter {
                 if (this.loopMode == -1 || (this.loopCount < this.loopMode)) {
                     this.time = 0;
                     this.loopCount++;
-                    
+
                     for (let i = 0; i < this.tracks.length; i++) {
                         if (!this.tracks[i].keys) continue;
-                        this.tracks[i].keys.forEach(function(key, index, returnArr) {
+                        this.tracks[i].keys.forEach(function (key, index, returnArr) {
                             returnArr[index].hasStarted = false;
                             returnArr[index].hasEnded = false;
                         })
@@ -107,8 +107,10 @@ class Timeline extends EventEmitter {
      * Iterate animation values and apply the values with the proper duration and easing.
      */
     applyValues() {
-        for (let i = 0; i < this.tracks.length; i++) {this.tracks[i].keys
-            if(!this.tracks[i].keys) continue;
+        for (let i = 0; i < this.tracks.length; i++) {
+            this.tracks[i].keys
+            if (!this.tracks[i].keys) continue;
+
             for (let z = 0; z < this.tracks[i].keys.length; z++) {
                 let currentTrack = this.tracks[i].keys[z];
 
@@ -116,19 +118,63 @@ class Timeline extends EventEmitter {
                     continue;
                 }
 
-                if (this.time >= currentTrack.startTime && !currentTrack.hasStarted) {
-                    let startValue = currentTrack.target[currentTrack.propertyName];
-                    if (startValue.length && startValue.indexOf('px') > -1) {
-                        currentTrack.startValue = Number(startValue.replace('px', ''));
-                        currentTrack.unit = 'px';
+                //- Set values based on follow properties.
+                if (!currentTrack.hasStarted) {
+                    if (currentTrack.parent.isFollowing && currentTrack.parent.followType === 'useValues') {
+                        let following = currentTrack.parent.followTrack;
+                        let followingTimeLength = following.sampleRate * following.data.length;
+
+                        if (this.time > followingTimeLength) {
+                            continue;
+                        }
+                        else {
+                            let startTimeIndex = Math.floor(currentTrack.startTime * following.sampleRate);
+                            let endTimeIndex = Math.ceil(currentTrack.endTime * following.sampleRate)
+
+                            if (endTimeIndex > following.data.length) {
+                                endTimeIndex = following.data.length - 1;
+                            }
+
+                            currentTrack.startValue = following.data[startTimeIndex];
+                            currentTrack.endValue = following.data[endTimeIndex];
+                        }
                     }
-                    else {
-                        currentTrack.startValue = Number(startValue);
+                    else if (!currentTrack.parent.isFollowing && this.time >= currentTrack.startTime) {
+
+                        let startValue = currentTrack.target[currentTrack.propertyName];
+                        if (startValue.length && startValue.indexOf('px') > -1) {
+                            currentTrack.startValue = Number(startValue.replace('px', ''));
+                            currentTrack.unit = 'px';
+                        }
+                        else {
+                            currentTrack.startValue = Number(startValue);
+                        }
                     }
+
                     currentTrack.hasStarted = true;
-                    if (currentTrack.onStart) {
-                        currentTrack.onStart();
+                }
+
+                if (currentTrack.parent.isFollowing && currentTrack.parent.followType === 'ignoreKeys' && currentTrack.hasStarted) {
+                    let following = currentTrack.parent.followTrack;
+                    let followingTimeLength = following.sampleRate * following.data.length;
+
+                    if (this.time < followingTimeLength) {
+                        currentTrack.startTime = Math.floor(this.time) * following.sampleRate;
+                        currentTrack.endTime = Math.ceil(this.time) * following.sampleRate
+
+                        let startTimeIndex = Math.floor(this.time / followingTimeLength * 10);
+                        let endTimeIndex = Math.ceil(this.time / followingTimeLength * 10);
+
+                        if (endTimeIndex > following.data.length) {
+                            endTimeIndex = following.data.length - 1;
+                        }
+
+                        currentTrack.startValue = following.data[startTimeIndex];
+                        currentTrack.endValue = following.data[endTimeIndex];
                     }
+                    // Looping bugs hadEnded?
+                    // Easing ??
+                    // 
                 }
 
                 let duration = currentTrack.endTime - currentTrack.startTime;
@@ -143,16 +189,9 @@ class Timeline extends EventEmitter {
 
                 if (currentTrack.unit) value += currentTrack.unit;
                 currentTrack.target[currentTrack.propertyName] = value;
-
-                if (currentTrack.parent && currentTrack.parent.onUpdateCallback) {
-                    currentTrack.parent.onUpdateCallback(currentTrack);
-                }
-
+                
                 if (this.time >= currentTrack.endTime && !currentTrack.hasEnded) {
                     currentTrack.hasEnded = true;
-                    if (currentTrack.onEnd) {
-                        currentTrack.onEnd();
-                    }
                 }
 
                 if (t == 1) {

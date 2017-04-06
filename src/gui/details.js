@@ -120,15 +120,14 @@ class DetailsView extends EventEmitter {
                 <div id="follow">
                     Follow input
                     ${this.followableInput()}
-                   <div>
+                   <div id="followModifier">
                         <input name="followKeysOptions" type="radio" id="radio1" value="ignoreKeys" checked=true>
-                        <label for="radio1">Ignore keys and follow</label>
-                   </div>
-                   <div>
-                    <input name="followKeysOptions" type="radio" id="radio2" value="useValues">
-                    <label for="radio2">Use values at keys</label>
-                    <input type="text" placeholder="modify follow value"></input>
+                        <label for="radio1">Ignore keys and follow values.</label>
+                        <br>
+                        <input name="followKeysOptions" type="radio" id="radio2" value="useValues">
+                        <label for="radio2">Use easing at keys. Values will be calculated based on relative time indexes.</label>
                     </div>
+                    <input type="text" placeholder="modify follow value"></input>
                 </div>`;
     }
     followableInput() {
@@ -143,7 +142,14 @@ class DetailsView extends EventEmitter {
         let followableOptions = '<select id="followSelect"><option value="noFollow"> ---------- </option>';
         
         this.followableTracks.forEach((track, index) => {
-            followableOptions += '<option value="' + index + '">' + track.targetName + '</option>';
+            if(this.track.isFollowing && this.track.followTrack.targetName === track.targetName) {
+                followableOptions += '<option value="' + index + '" selected>';
+            }
+            else {
+                followableOptions += '<option value="' + index + '">';
+            }
+
+            followableOptions += track.targetName + '</option>';
         })
 
         followableOptions += '</select>';
@@ -152,7 +158,11 @@ class DetailsView extends EventEmitter {
     }
     keyframeEvents() {
         let followInput = document.getElementById('followSelect');
-        let followModifier = document.getElementById('');
+        let followModifier = document.getElementById('followModifier');
+
+        followModifier.onclick = (event) => {
+            this.track.followType = document.querySelector('input[name="followKeysOptions"]:checked').value;
+        }
 
         followInput.onchange = (event) => {
             //remove properties if deselected
