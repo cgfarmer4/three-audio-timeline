@@ -73,11 +73,23 @@ class Timeline extends EventEmitter {
                     this.loopCount++;
 
                     for (let i = 0; i < this.tracks.length; i++) {
-                        if (!this.tracks[i].keys) continue;
-                        this.tracks[i].keys.forEach(function (key, index, returnArr) {
-                            returnArr[index].hasStarted = false;
-                            returnArr[index].hasEnded = false;
-                        })
+                        if (!this.tracks[i].keysMap) continue;
+                        let track = this.tracks[i];
+
+                        for (let key in track.keysMap) {
+                            let keys = track.keysMap[key].keys;
+                            keys.forEach(function (key, index, returnArr) {
+                                returnArr[index].hasStarted = false;
+                                returnArr[index].hasEnded = false;
+                            })
+
+                            if (track.keysMap[key].following) {
+                                track.keysMap[key].followKeys.forEach(function (key, index, returnArr) {
+                                    returnArr[index].hasStarted = false;
+                                    returnArr[index].hasEnded = false;
+                                })
+                            }
+                        }
                     }
                 }
                 else {
@@ -108,96 +120,62 @@ class Timeline extends EventEmitter {
      */
     applyValues() {
         for (let i = 0; i < this.tracks.length; i++) {
-            this.tracks[i].keys
-            if (!this.tracks[i].keys) continue;
+            if (!this.tracks[i].keysMap) continue;
 
-            for (let z = 0; z < this.tracks[i].keys.length; z++) {
-                let currentTrack = this.tracks[i].keys[z];
+            //Iterate the keys in the track map
+            for (let property in this.tracks[i].keysMap) {
+                let keys = this.tracks[i].keysMap[property].keys;
 
-                if (this.time < currentTrack.startTime || currentTrack.hasEnded) {
-                    continue;
+                if (this.tracks[i].keysMap[property].following) {
+                    keys = this.tracks[i].keysMap[property].followKeys
                 }
 
-                //- Set values based on follow properties.
-                if (!currentTrack.hasStarted) {
-                    if (currentTrack.parent.isFollowing && currentTrack.parent.followType === 'useValues') {
-                        let following = currentTrack.parent.followTrack;
-                        let followingTimeLength = following.sampleRate * following.data.length;
+                for (let z = 0; z < keys.length; z++) {
+                    let currentTrack = keys[z];
 
-                        if (this.time > followingTimeLength) {
-                            continue;
-                        }
-                        else {
-                            let startTimeIndex = Math.floor(currentTrack.startTime * following.sampleRate);
-                            let endTimeIndex = Math.ceil(currentTrack.endTime * following.sampleRate)
-
-                            if (endTimeIndex > following.data.length) {
-                                endTimeIndex = following.data.length - 1;
-                            }
-
-                            currentTrack.startValue = following.data[startTimeIndex];
-                            currentTrack.endValue = following.data[endTimeIndex];
-                        }
+                    if (this.time < currentTrack.startTime || currentTrack.hasEnded) {
+                        continue;
                     }
-                    else if (!currentTrack.parent.isFollowing && this.time >= currentTrack.startTime) {
 
+                    if (this.time >= currentTrack.startTime && !currentTrack.hasStarted) {
                         let startValue = currentTrack.target[currentTrack.propertyName];
+
                         if (startValue.length && startValue.indexOf('px') > -1) {
                             currentTrack.startValue = Number(startValue.replace('px', ''));
                             currentTrack.unit = 'px';
                         }
                         else {
-                            currentTrack.startValue = Number(startValue);
+                            currentTrack.startValue = startValue;
                         }
+                        currentTrack.hasStarted = true;
                     }
 
-                    currentTrack.hasStarted = true;
-                }
+                    let duration = currentTrack.endTime - currentTrack.startTime;
+                    let t = duration ? (this.time - currentTrack.startTime) / (duration) : 1;
+                    let easeType = currentTrack.easing.substr(0, currentTrack.easing.indexOf("."));
+                    let easeBezier = currentTrack.easing.substr(currentTrack.easing.indexOf(".") + 1, currentTrack.easing.length);
 
-                if (currentTrack.parent.isFollowing && currentTrack.parent.followType === 'ignoreKeys' && currentTrack.hasStarted) {
-                    let following = currentTrack.parent.followTrack;
-                    let followingTimeLength = following.sampleRate * following.data.length;
+                    t = Math.max(0, Math.min(t, 1));
+                    t = Easing[easeType][easeBezier](t);
 
-                    if (this.time < followingTimeLength) {
-                        currentTrack.startTime = Math.floor(this.time) * following.sampleRate;
-                        currentTrack.endTime = Math.ceil(this.time) * following.sampleRate
+                    let value = currentTrack.startValue + (currentTrack.endValue - currentTrack.startValue) * t;
 
-                        let startTimeIndex = Math.floor(this.time / followingTimeLength * 10);
-                        let endTimeIndex = Math.ceil(this.time / followingTimeLength * 10);
+                    if (currentTrack.unit) value += currentTrack.unit;
+                    currentTrack.target[currentTrack.propertyName] = value;
 
-                        if (endTimeIndex > following.data.length) {
-                            endTimeIndex = following.data.length - 1;
-                        }
-
-                        currentTrack.startValue = following.data[startTimeIndex];
-                        currentTrack.endValue = following.data[endTimeIndex];
+                    if (currentTrack.parent && currentTrack.parent.onUpdateCallback) {
+                        currentTrack.parent.onUpdateCallback(currentTrack);
                     }
-                    // Looping bugs hadEnded?
-                    // Easing ??
-                    // 
-                }
 
-                let duration = currentTrack.endTime - currentTrack.startTime;
-                let t = duration ? (this.time - currentTrack.startTime) / (duration) : 1;
-                let easeType = currentTrack.easing.substr(0, currentTrack.easing.indexOf("."));
-                let easeBezier = currentTrack.easing.substr(currentTrack.easing.indexOf(".") + 1, currentTrack.easing.length);
+                    if (this.time >= currentTrack.endTime && !currentTrack.hasEnded) {
+                        currentTrack.hasEnded = true;
+                    }
 
-                t = Math.max(0, Math.min(t, 1));
-                t = Easing[easeType][easeBezier](t);
-
-                let value = currentTrack.startValue + (currentTrack.endValue - currentTrack.startValue) * t;
-
-                if (currentTrack.unit) value += currentTrack.unit;
-                currentTrack.target[currentTrack.propertyName] = value;
-                
-                if (this.time >= currentTrack.endTime && !currentTrack.hasEnded) {
-                    currentTrack.hasEnded = true;
-                }
-
-                if (t == 1) {
-                    if (this.loopMode == 0) {
-                        this.tracks.splice(i, 1);
-                        i--;
+                    if (t == 1) {
+                        if (this.loopMode == 0) {
+                            this.tracks.splice(i, 1);
+                            i--;
+                        }
                     }
                 }
             }

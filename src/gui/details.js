@@ -5,10 +5,11 @@ const EventEmitter = require('events').EventEmitter
 class DetailsView extends EventEmitter {
     constructor(timeline) {
         super();
-
         this.timeline = timeline;
-        this.on('displayTrack', (track) => {
-            this.track = track;
+
+        this.on('displayTrack', (eventData) => {
+            this.track = eventData.target;
+            this.track.selectedProperty = eventData.property;
             this.displayTrack();
         })
 
@@ -82,6 +83,8 @@ class DetailsView extends EventEmitter {
             case 'keyframe':
                 template = this.keyframeTrackTemplate();
                 break;
+            default:
+                break;
         }
 
         this.details.innerHTML = template;
@@ -113,20 +116,14 @@ class DetailsView extends EventEmitter {
                 </header>
                 <ul>
                     <li>Name: ${this.track.targetName} </li>
-                    <li>Num Keys: ${this.track.keys.length}</li>
+                    <li>Property: ${this.track.selectedProperty} </li>
                     <li>Start: ${this.track.startTime}</li>
                     <li>End: ${this.track.endTime}</li>
                 </ul>
                 <div id="follow">
                     Follow input
                     ${this.followableInput()}
-                   <div id="followModifier">
-                        <input name="followKeysOptions" type="radio" id="radio1" value="ignoreKeys" checked=true>
-                        <label for="radio1">Ignore keys and follow values.</label>
-                        <br>
-                        <input name="followKeysOptions" type="radio" id="radio2" value="useValues">
-                        <label for="radio2">Use easing at keys. Values will be calculated based on relative time indexes.</label>
-                    </div>
+                    ${this.followTypeRadio()}
                     <input type="text" placeholder="modify follow value"></input>
                 </div>`;
     }
@@ -142,7 +139,8 @@ class DetailsView extends EventEmitter {
         let followableOptions = '<select id="followSelect"><option value="noFollow"> ---------- </option>';
         
         this.followableTracks.forEach((track, index) => {
-            if(this.track.isFollowing && this.track.followTrack.targetName === track.targetName) {
+            let selected = this.track.keysMap[this.track.selectedProperty];
+            if (selected.following && selected.followTrack.targetName === track.targetName) {
                 followableOptions += '<option value="' + index + '" selected>';
             }
             else {
@@ -156,30 +154,44 @@ class DetailsView extends EventEmitter {
 
         return followableOptions;
     }
+    followTypeRadio() {
+        let selected = this.track.keysMap[this.track.selectedProperty];
+        let types = '<div id="followModifier">'
+        
+        if (selected.followType === 'ignoreKeys' || selected.followType !== 'useValues') {
+            types += '<input name="followKeysOptions" type="radio" id="radio1" value="ignoreKeys" checked=true>';
+        }
+        else {
+            types += '<input name="followKeysOptions" type="radio" id="radio1" value="ignoreKeys">';
+        }
+        
+        types += '<label for="radio1">Ignore keys and follow values.</label><br>';
+
+        if (selected.followType === 'useValues') {
+            types += '<input name="followKeysOptions" type="radio" id="radio2" value="useValues" checked=true>';
+        }
+        else {
+            types += '<input name="followKeysOptions" type="radio" id="radio2" value="useValues">';
+        }
+            
+        types += '<label for="radio2">Use easing at keys. Values will be calculated based on relative time indexes.</label></div>';
+
+        return types;
+    }
     keyframeEvents() {
         let followInput = document.getElementById('followSelect');
         let followModifier = document.getElementById('followModifier');
 
         followModifier.onclick = (event) => {
-            this.track.followType = document.querySelector('input[name="followKeysOptions"]:checked').value;
+            this.track.keysMap[this.track.selectedProperty].followType = document.querySelector('input[name="followKeysOptions"]:checked').value;
+            this.track.emit('follow:updateModifier', event);
         }
 
         followInput.onchange = (event) => {
-            //remove properties if deselected
-            if (event.target.value === 'noFollow') {
-                this.track.following = false;
-                this.track.followTrack = {};
-                return;
-            }
-
-            //select followed track.
-            let selected = this.followableTracks[event.target.value];
-            this.track.isFollowing = true;
-            this.track.followTrack = selected;            
-
-            //update followed track properties with either 1. ignore or 2. use values
-            let followKeyOptionSelected = document.querySelector('input[name="followKeysOptions"]:checked').value;
-            this.track.followType = followKeyOptionSelected;
+            this.track.emit('follow:update', {
+                event: event,
+                followableTracks: this.followableTracks
+            });
         }
     }
 }

@@ -1,24 +1,23 @@
 'use_strict';
+const Track = require('./track');
 
 /**
  * Stores keyframe values based on editable properties.
  */
-class Keyframe {
+class Keyframe extends Track {
     constructor(name, target, timeline) {
-        this.id = name;
+        super(name, timeline);
         this.type = 'keyframe';
-        this.targetName = name;
         this.target = target;
-        this.timeline = timeline;
-        
+
         this.labelHeight = 20;
         this.startTime = 0;
         this.endTime = 0;
         this.time = 0;
-        this.isFollowing = false;
-        this.followTrack = {};
-        this.keys = [];
-        this.timeline.tracks.push(this);
+        this.keysMap = {};
+
+        this.on('follow:update', this.updateFollowingTrack.bind(this));
+        this.on('follow:updateModifier', this.updateFollowingModifier.bind(this));
     }
     /**
      * 
@@ -44,20 +43,137 @@ class Keyframe {
                 propertyName: propertyName,
                 endValue: properties[propertyName],
                 delay: delay,
-                startTime: this.timeline.time + delay + this.endTime,
-                time: this.timeline.time + delay + this.endTime,
-                endTime: this.timeline.time + delay + this.endTime + duration,
+                startTime: delay + this.endTime,
+                time: delay + this.endTime,
+                endTime: delay + this.endTime + duration,
                 easing: easing,
-                parent: this,
-                onStart: () => { },
-                onEnd: () => { }
+                parent: this
             };
 
-            this.keys.push(keyframeInfo);
+            if (!this.keysMap[keyframeInfo.name]) {
+                this.keysMap[keyframeInfo.name] = {
+                    keys: [],
+                    following: false,
+                    followTrack: {},
+                    followType: '',
+                    followingKeys: [],
+                    position: 0
+                };
+            }
+
+            this.keysMap[keyframeInfo.name].keys.push(keyframeInfo);
+        }
+        
+        this.endTime += delay + duration
+        return this;
+    }
+    updateFollowingModifier(event) {
+        let followKeyOptionSelected = document.querySelector('input[name="followKeysOptions"]:checked').value;
+        this.keysMap[this.selectedProperty].followType = followKeyOptionSelected;
+        this.setupKeysForFollowType(followKeyOptionSelected);
+    }
+    updateFollowingTrack(eventData) {
+        let followTracks = eventData.followableTracks;
+        let event = eventData.event;
+
+        //remove properties if deselected
+        if (event.target.value === 'noFollow') {
+            this.isFollowing = false;
+            this.followTrack = {};
+            this.followType = '';
+            this.followKeys = [];
+            this.endTime = this.oldEndTime;
+            return;
         }
 
-        this.endTime += delay + duration;
-        return this;
+        let followKeyOptionSelected = document.querySelector('input[name="followKeysOptions"]:checked').value;
+        let selected = followTracks[event.target.value];
+
+        //select followed track.
+        let propertyTrack = this.keysMap[this.selectedProperty];
+        propertyTrack.following = true;
+        propertyTrack.followTrack = selected;
+        propertyTrack.followType = followKeyOptionSelected;
+        this.setupKeysForFollowType(followKeyOptionSelected);
+    }
+    setupKeysForFollowType(followType) {
+        if (!this.keysMap[this.selectedProperty].following) return;
+        this.oldEndTime = this.endTime;
+        
+        switch (followType) {
+
+            //create a new keyframe at every sample point
+            case 'ignoreKeys':
+                let prevEndTime = 0;
+                let easing = "Linear.EaseNone";
+                let followTrack = this.keysMap[this.selectedProperty].followTrack;
+                let duration = followTrack.sampleRate;
+                this.keysMap[this.selectedProperty].followKeys = [];
+
+                followTrack.data.forEach(function (dataPoint, index) {
+                    //if key property name ==== selected then do's it.
+                    //if not selected then don't modify that child but still add to following?
+                    //not sure how to mix that yet :(
+                    let startValue = dataPoint;
+                    let endValue = 0;
+
+                    if (followTrack.data.length < index + 1) {
+                        endValue = followTrack.data[this.track.followTrack.data.length - 1];
+                    }
+                    else {
+                        endValue = followTrack.data[index];
+                    }
+
+                    let keyframeInfo = {
+                        id: followTrack.targetName,
+                        name: followTrack.targetName + " -> x",
+                        targetName: followTrack.targetName,
+                        hasStarted: false,
+                        timeline: this.timeline,
+                        target: this.target,
+                        propertyName: "x",
+                        startValue: startValue,
+                        endValue: endValue,
+                        delay: 0,
+                        startTime: prevEndTime,
+                        time: prevEndTime,
+                        endTime: prevEndTime + duration,
+                        easing: easing,
+                        parent: this,
+                        followKey: true
+                    };
+
+                    prevEndTime += duration;
+                    this.keysMap[this.selectedProperty].followKeys.push(keyframeInfo);
+                }.bind(this))
+
+                this.endTime = prevEndTime;
+                break;
+
+            //copy keyframes over and only update their values
+            case 'useValues':
+                let following = this.keysMap[this.selectedProperty].followTrack;
+                this.keysMap[this.selectedProperty].followKeys = Object.assign([], this.keysMap[this.selectedProperty].keys);
+
+                this.keysMap[this.selectedProperty].followKeys.forEach((key, index, returnArr) => {
+                    let followingTimeLength = following.sampleRate * following.data.length;
+
+                    let startTimeIndex = Math.floor(key.startTime * following.sampleRate);
+                    let endTimeIndex = Math.ceil(key.endTime * following.sampleRate)
+
+                    if (endTimeIndex > following.data.length) {
+                        endTimeIndex = following.data.length - 1;
+                    }
+
+                    returnArr[index].startValue = following.data[startTimeIndex];
+                    returnArr[index].endValue = following.data[endTimeIndex];
+                })
+
+                break;
+
+            default:
+                break;
+        }
     }
 }
 
