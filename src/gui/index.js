@@ -158,7 +158,9 @@ class TimelineGui {
             for (let i = 0; i < this.selectedKeys.length; i++) {
                 let draggedKey = this.selectedKeys[i];
                 draggedKey.startTime = Math.max(0, this.xToTime(x));
+                draggedKey.endTime = draggedKey.startTime + draggedKey.duration;
                 this.sortTrackKeys(draggedKey.parent);
+                this.details.emit('displayKey', this.selectedKeys[0]);
             }
             this.cancelKeyClick = true;
             this.timeScrollThumbPos = this.timeScrollX * (this.timeScrollWidth - this.timeScrollThumbWidth);
@@ -249,7 +251,10 @@ class TimelineGui {
             if (timeArr.length > 2) hours = parseInt(timeArr[timeArr.length - 3], 10);
             this.time = this.timeline.totalTime = hours * 60 * 60 + minutes * 60 + seconds;
         }
-        else if (x > this.trackLabelWidth && this.selectedKeys.length === 0 && y > this.headerHeight && y < this.canvasHeight - this.timeScrollHeight) {
+        else if (x > this.trackLabelWidth 
+        && this.selectedKeys.length === 0 
+        && y > this.headerHeight 
+        && y < this.canvasHeight - this.timeScrollHeight) { //&&keyframe
             this.addKeyAt(x, y);
         }
     }
@@ -259,18 +264,33 @@ class TimelineGui {
      * @param {*} mouseY 
      */
     addKeyAt(mouseX, mouseY) {
+        let selectedKeys = [];
         let selectedTrack = this.getTrackAt(mouseX, mouseY);
-        let selectedKeys = selectedTrack.target.keys;
+        if(selectedTrack.target.type !== 'keyframe') return;
+
+        let targetedTrack = selectedTrack.target.keysMap[selectedTrack.target.selectedProperty];
+        (targetedTrack.following) ? selectedKeys = targetedTrack.followKeys : selectedKeys = targetedTrack.keys;
 
         if (!selectedTrack) {
             return;
         }
 
-        var newKey = {
+        let newKey = {
+            id: selectedTrack.target.targetName + "." + selectedTrack.target.selectedProperty,
+            hasStarted: false,
+            timeline: this.timeline,
+            name: selectedTrack.propertyName,
+            targetName: selectedTrack.target.targetName,
+            target: selectedTrack.target.target,
+            propertyName: selectedTrack.propertyName,
+            startValue: selectedTrack.target.target[selectedTrack.propertyName],
+            endValue: selectedTrack.target.target[selectedTrack.propertyName],
+            duration: 1,
+            startTime: this.xToTime(mouseX),
             time: this.xToTime(mouseX),
-            value: selectedTrack.key.endValue,
+            endTime: this.xToTime(mouseX) + 1,
             easing: "Linear.EaseNone",
-            track: selectedTrack
+            parent: selectedTrack.target
         };
 
         if (selectedKeys.length === 0) {
@@ -298,6 +318,7 @@ class TimelineGui {
             }
         }
         this.selectedKeys = [newKey];
+        this.details.emit('displayKey', this.selectedKeys[0]);
     }
     /**
      * Based upon the click event, find the selected track.
@@ -389,13 +410,13 @@ class TimelineGui {
         this.selectedKeys = [];
         let selectedTrack = this.getTrackAt(mouseX, mouseY);
         if (!selectedTrack || selectedTrack.type !== 'keyframe') return;
-        
+
         let keys = [];
         let targetKey = selectedTrack.target.keysMap[selectedTrack.target.selectedProperty];
 
-        if(targetKey.following) {
+        if (targetKey.following) {
             keys = targetKey.followKeys
-        } 
+        }
         else {
             keys = targetKey.keys;
         }
@@ -411,14 +432,13 @@ class TimelineGui {
                 break;
             }
         }
-
     }
     /**
      * Redraw the scene on each animation frame.
      */
     updateGUI() {
         this.yshift = this.headerHeight;
-        this.canvas.width = window.innerWidth;
+        this.canvas.width = window.innerWidth - 15;
         this.canvas.height = this.canvasHeight;
         let w = this.canvas.width;
         let h = this.canvas.height;
@@ -837,11 +857,14 @@ class TimelineGui {
      * @param {*} track 
      */
     sortTrackKeys(track) {
-        track.keys.sort(function (a, b) { return a.startTime - b.startTime; });
+        let keys = [];
+        let selectedTrack = track.keysMap[track.selectedProperty];
+        (selectedTrack.following) ? keys = selectedTrack.followKeys : keys = selectedTrack.keys;
+        keys.sort(function (a, b) { return a.startTime - b.startTime; });
 
         let result = "";
-        for (let i = 0; i < track.keys.length; i++) {
-            result += track.keys[i].startTime + " ";
+        for (let i = 0; i < keys.length; i++) {
+            result += keys[i].startTime + " ";
         }
     }
 }

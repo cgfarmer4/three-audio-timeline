@@ -15,6 +15,7 @@ class DetailsView extends EventEmitter {
 
         this.on('displayKey', (key) => {
             this.key = key;
+            this.track.selectedProperty = key.propertyName;
             this.displayKey();
         })
     }
@@ -29,27 +30,8 @@ class DetailsView extends EventEmitter {
             this.details.id = 'detailsView';
         }
     }
-    displayKey() {
-        this.clearDetails();
-        let template = `<header>
-                    <h1>key</h1>
-                </header>
-                <ul>
-                    <li>ID: ${this.key.id}</li>
-                    <li>Name: ${this.key.name}</li>
-                    <li>Easing: ${this.easingInput(this.key.easing)}</li>
-                    <li>Delay: ${this.key.delay}</li>
-                    <li>Start Time: ${this.key.startTime}</li>
-                    <li>End Time: ${this.key.endTime}</li>
-                    <li>Time: ${this.key.time}</li>
-                    <li>End Value: ${this.key.endValue}</li>
-                </ul>`;
-
-        this.details.innerHTML = template;
-        document.body.appendChild(this.details);
-    }
     easingInput(easingSelected) {
-        let easingOptions = '<select>';
+        let easingOptions = '<select id="easingInput">';
 
         for (let easingFunctionFamilyName in Easing) {
             let easingFunctionFamily = Easing[easingFunctionFamilyName];
@@ -90,9 +72,41 @@ class DetailsView extends EventEmitter {
         this.details.innerHTML = template;
         document.body.appendChild(this.details);
 
-        if(this.track.type === 'keyframe') {
+        if (this.track.type === 'keyframe') {
             this.keyframeEvents();
         }
+    }
+    displayKey() {
+        this.clearDetails();
+        let template = `<header>
+                    <h2>key</h2>
+                    <h3>${this.key.id}</h3>
+                </header>
+                <ul id="keyEdit">
+                    <!--<li><label>Time:</label> <span style="font-size: 12px">${this.key.time}</span></li>-->
+                    <li>
+                        <label for="keyStart">Start Time:</label>
+                        <input id="keyStart" type="text" value="${this.key.startTime}">
+                    </li>
+                                        <li>
+                        <label for="keyDuration">Duration:</label>
+                        <input id="keyDuration" type="text" value="${this.key.duration}">
+                    </li>
+                    <li>
+                        <label for="keyEndTime">End Time:</label>
+                        <input id="keyEndTime" type="text" value="${this.key.endTime}" disabled>
+                    </li>
+                    <li>
+                        <label for="keyEndValue">End Value:</label>
+                        <input id="keyEndValue" type="text" value="${this.key.endValue}">
+                    </li>
+                    <li>${this.easingInput(this.key.easing)}</li>
+                    <li><button id="keyRemove"> Remove </button></li>
+                </ul>`;
+
+        this.details.innerHTML = template;
+        document.body.appendChild(this.details);
+        this.keyEvents();
     }
     positionTemplate() {
         return `<header>
@@ -104,27 +118,26 @@ class DetailsView extends EventEmitter {
     }
     numberTemplate() {
         return `<header>
-                    <h1>${this.track.type}</h1>
+                    <h2>${this.track.type}</h2>
+                    <h3>${this.track.targetName}</h3>
                 </header>
-                <ul>
-                    <li>Name: ${this.track.targetName} </li>
-                </ul>`;
+                `;
     }
     keyframeTrackTemplate() {
         return `<header>
-                        <h1>${this.track.type}</h1>
+                        <h2>${this.track.type}</h2>
+                        <h3>${this.track.targetName}</h3>
                 </header>
                 <ul>
-                    <li>Name: ${this.track.targetName} </li>
                     <li>Property: ${this.track.selectedProperty} </li>
                     <li>Start: ${this.track.startTime}</li>
                     <li>End: ${this.track.endTime}</li>
                 </ul>
-                <div id="follow">
-                    Follow input
+                <div id="follow" style="padding: 10px">
+                    <h4 style="margin: 0 0 10px 0;">Follow input</h4>
                     ${this.followableInput()}
                     ${this.followTypeRadio()}
-                    <input type="text" placeholder="modify follow value"></input>
+                    <!--<input type="text" placeholder="modify follow value"></input>-->
                 </div>`;
     }
     followableInput() {
@@ -137,7 +150,7 @@ class DetailsView extends EventEmitter {
         })
 
         let followableOptions = '<select id="followSelect"><option value="noFollow"> ---------- </option>';
-        
+
         this.followableTracks.forEach((track, index) => {
             let selected = this.track.keysMap[this.track.selectedProperty];
             if (selected.following && selected.followTrack.targetName === track.targetName) {
@@ -156,16 +169,17 @@ class DetailsView extends EventEmitter {
     }
     followTypeRadio() {
         let selected = this.track.keysMap[this.track.selectedProperty];
-        let types = '<div id="followModifier">'
-        
+        let types = '<div id="followModifier" style="margin: 10px 0;">\
+        <div class="option1">';
+
         if (selected.followType === 'ignoreKeys' || selected.followType !== 'useValues') {
             types += '<input name="followKeysOptions" type="radio" id="radio1" value="ignoreKeys" checked=true>';
         }
         else {
             types += '<input name="followKeysOptions" type="radio" id="radio1" value="ignoreKeys">';
         }
-        
-        types += '<label for="radio1">Ignore keys and follow values.</label><br>';
+
+        types += '<label for="radio1">Key for every data point.</label></div><div class="option2">';
 
         if (selected.followType === 'useValues') {
             types += '<input name="followKeysOptions" type="radio" id="radio2" value="useValues" checked=true>';
@@ -173,8 +187,8 @@ class DetailsView extends EventEmitter {
         else {
             types += '<input name="followKeysOptions" type="radio" id="radio2" value="useValues">';
         }
-            
-        types += '<label for="radio2">Use easing at keys. Values will be calculated based on relative time indexes.</label></div>';
+
+        types += '<label for="radio2">Set all keys values to nearest data points.</label></div></div>';
 
         return types;
     }
@@ -193,6 +207,40 @@ class DetailsView extends EventEmitter {
                 followableTracks: this.followableTracks
             });
         }
+    }
+    keyEvents() {
+        let keyEdit = document.getElementById('keyEdit');
+        let duration = keyEdit.querySelector('#keyDuration');
+        let start = keyEdit.querySelector('#keyStart');
+        let keyEndTime = keyEdit.querySelector('#keyEndTime');
+        let keyEndValue = keyEdit.querySelector('#keyEndValue');
+        let easingInput = keyEdit.querySelector('#easingInput');
+
+        duration.onchange = (event) => {
+            this.key.duration = Number(event.target.value);
+            this.key.endTime = this.key.duration + Number(this.key.startTime);
+            keyEndTime.value = this.key.endTime;
+        }
+
+        start.onchange = (event) => {
+            this.key.startTime = Number(event.target.value);
+            this.key.time = this.key.startTime;
+            this.key.endTime = this.key.startTime + Number(this.key.duration);
+            keyEndTime.value = this.key.endTime;
+        }
+
+        // keyEndTime.onchange = (event) => {
+        //     this.key.endTime = event.target.value;
+        // }
+
+        keyEndValue.onchange = (event) => {
+            this.key.endValue = event.target.value;
+        }
+
+        easingInput.onchange = (event) => {
+            this.key.easing = event.target.value;
+        }
+
     }
 }
 

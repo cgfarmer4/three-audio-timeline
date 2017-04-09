@@ -21,12 +21,11 @@ class Keyframe extends Track {
     }
     /**
      * 
-     * @param {*} delay 
      * @param {*} properties 
      * @param {*} duration 
      * @param {*} easing 
      */
-    keyframe(delay, properties, duration, easing) {
+    keyframe(properties, duration, easing) {
         if (!easing) {
             easing = "Linear.EaseNone";
         }
@@ -42,10 +41,10 @@ class Keyframe extends Track {
                 target: this.target,
                 propertyName: propertyName,
                 endValue: properties[propertyName],
-                delay: delay,
-                startTime: delay + this.endTime,
-                time: delay + this.endTime,
-                endTime: delay + this.endTime + duration,
+                duration: duration,
+                startTime: this.endTime,
+                time: this.endTime,
+                endTime: this.endTime + duration,
                 easing: easing,
                 parent: this
             };
@@ -64,7 +63,7 @@ class Keyframe extends Track {
             this.keysMap[keyframeInfo.name].keys.push(keyframeInfo);
         }
         
-        this.endTime += delay + duration
+        this.endTime += duration;
         return this;
     }
     updateFollowingModifier(event) {
@@ -111,9 +110,6 @@ class Keyframe extends Track {
                 this.keysMap[this.selectedProperty].followKeys = [];
 
                 followTrack.data.forEach(function (dataPoint, index) {
-                    //if key property name ==== selected then do's it.
-                    //if not selected then don't modify that child but still add to following?
-                    //not sure how to mix that yet :(
                     let startValue = dataPoint;
                     let endValue = 0;
 
@@ -134,8 +130,8 @@ class Keyframe extends Track {
                         propertyName: "x",
                         startValue: startValue,
                         endValue: endValue,
-                        delay: 0,
                         startTime: prevEndTime,
+                        duration: duration,
                         time: prevEndTime,
                         endTime: prevEndTime + duration,
                         easing: easing,
