@@ -125,11 +125,10 @@ class DetailsView extends EventEmitter {
     }
     keyframeTrackTemplate() {
         return `<header>
-                        <h2>${this.track.type}</h2>
-                        <h3>${this.track.targetName}</h3>
+                        <h2>${this.track.type} track</h2>
+                        <h3>${this.track.targetName}.${this.track.selectedProperty}</h3>
                 </header>
                 <ul>
-                    <li>Property: ${this.track.selectedProperty} </li>
                     <li>Start: ${this.track.startTime}</li>
                     <li>End: ${this.track.endTime}</li>
                 </ul>
@@ -215,6 +214,7 @@ class DetailsView extends EventEmitter {
         let keyEndTime = keyEdit.querySelector('#keyEndTime');
         let keyEndValue = keyEdit.querySelector('#keyEndValue');
         let easingInput = keyEdit.querySelector('#easingInput');
+        let keyRemove = keyEdit.querySelector('#keyRemove');
 
         duration.onchange = (event) => {
             this.key.duration = Number(event.target.value);
@@ -229,16 +229,24 @@ class DetailsView extends EventEmitter {
             keyEndTime.value = this.key.endTime;
         }
 
-        // keyEndTime.onchange = (event) => {
-        //     this.key.endTime = event.target.value;
-        // }
-
         keyEndValue.onchange = (event) => {
             this.key.endValue = event.target.value;
         }
 
         easingInput.onchange = (event) => {
             this.key.easing = event.target.value;
+        }
+
+        keyRemove.onclick = (event) => {
+            let keys = [];
+            let parent = this.key.parent;
+            let selectedKeyGroup = parent.keysMap[parent.selectedProperty];
+            
+            (selectedKeyGroup.following) ? keys = selectedKeyGroup.followKeys : keys = selectedKeyGroup.keys;
+            let keyIndex = keys.indexOf(this.key);
+
+            keys.splice(keyIndex, 1);
+            document.getElementById('detailsView').remove();
         }
 
     }
