@@ -20,6 +20,7 @@ class Keyframe extends Track {
         this.on('follow:updateModifier', this.updateFollowingModifier.bind(this));
     }
     /**
+     * Properties of each keyframe on creation. Referred to as keys elsewhere.
      * 
      * @param {*} properties 
      * @param {*} duration 
@@ -62,43 +63,61 @@ class Keyframe extends Track {
 
             this.keysMap[keyframeInfo.name].keys.push(keyframeInfo);
         }
-        
+
         this.endTime += duration;
         return this;
     }
+    /**
+     * Type of follow changed.
+     * 
+     * @param {Object} eventData 
+     */
     updateFollowingModifier(event) {
         let followKeyOptionSelected = document.querySelector('input[name="followKeysOptions"]:checked').value;
         this.keysMap[this.selectedProperty].followType = followKeyOptionSelected;
         this.setupKeysForFollowType(followKeyOptionSelected);
     }
+    /**
+     * The input track modified the following track so update the GUI to reflect that.
+     * 
+     * @param {Object} eventData 
+     */
     updateFollowingTrack(eventData) {
         let followTracks = eventData.followableTracks;
+        let propertyTrack = this.keysMap[this.selectedProperty]; //select followed track.
         let event = eventData.event;
 
         //remove properties if deselected
         if (event.target.value === 'noFollow') {
-            this.isFollowing = false;
-            this.followTrack = {};
-            this.followType = '';
-            this.followKeys = [];
+            propertyTrack.following = false;
+            propertyTrack.followKeys = [];
+            propertyTrack.followTrack = {};
+            propertyTrack.followType = '';
             this.endTime = this.oldEndTime;
+            this.updateTrackEnd();
+
             return;
         }
 
         let followKeyOptionSelected = document.querySelector('input[name="followKeysOptions"]:checked').value;
         let selected = followTracks[event.target.value];
 
-        //select followed track.
-        let propertyTrack = this.keysMap[this.selectedProperty];
+        
         propertyTrack.following = true;
         propertyTrack.followTrack = selected;
         propertyTrack.followType = followKeyOptionSelected;
         this.setupKeysForFollowType(followKeyOptionSelected);
+        this.updateTrackEnd();
     }
+    /**
+     * Create keyframe tracks based on the follow type. 
+     * 
+     * @param {String} followType ignoreKeys, useValues
+     */
     setupKeysForFollowType(followType) {
         if (!this.keysMap[this.selectedProperty].following) return;
         this.oldEndTime = this.endTime;
-        
+
         switch (followType) {
 
             //create a new keyframe at every sample point
@@ -170,6 +189,28 @@ class Keyframe extends Track {
             default:
                 break;
         }
+    }
+    /**
+     * Iterate all of the keys and find the largest value. 
+     * Then update the end of the track so we can update our animation.
+     * 
+     */
+    updateTrackEnd() {
+        let keys = [];
+        let endTime = 0;
+
+        if (this.keysMap[this.selectedProperty].following) {
+            keys = this.keysMap[this.selectedProperty].followKeys;
+        }
+        else {
+            keys = this.keysMap[this.selectedProperty].keys;
+        }
+
+        keys.forEach((key) => {
+            if(key.endTime > endTime) endTime = key.endTime;
+        });
+
+        this.endTime = endTime;
     }
 }
 

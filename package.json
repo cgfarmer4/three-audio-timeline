@@ -1,5 +1,5 @@
 {
-  "name": "three-audio-timeline",
+  "name": "three-anim-timeline",
   "version": "0.0.1",
   "description": "A JavaScript animation library",
   "scripts": {
@@ -13,7 +13,7 @@
     "timeline",
     "animation"
   ],
-  "author": "Apaix",
+  "author": "Chase Farmer",
   "license": "MIT",
   "bugs": {
     "url": ""

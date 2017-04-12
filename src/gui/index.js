@@ -1,6 +1,7 @@
 'use_strict';
 
 const Easing = require('../easing.js');
+const Toolbar = require('./toolbar');
 const Details = require('./details');
 const DataUtils = require('./data');
 
@@ -34,7 +35,6 @@ class TimelineGui {
         this.selectedKeys = [];
         this.timeScale = 1;
         this.trackNameCounter = 0;
-        // this.load();
 
         //Main Timeline Canvas Container
         this.container = document.createElement("div");
@@ -44,8 +44,11 @@ class TimelineGui {
         this.container.style.position = "fixed";
         this.container.style.left = "0px";
         this.container.style.bottom = "0px";
+        this.container.style.display = "none";
         document.body.appendChild(this.container);
-
+        
+        this.toolbar = new Toolbar(this.timeline);
+        this.container.appendChild(this.toolbar.element);
         this.addSplitter.call(this);
 
         //Canvas Element
@@ -61,11 +64,6 @@ class TimelineGui {
         this.canvas.ondblclick = this.onMouseDoubleClick.bind(this);
         this.canvas.onmouseup = this.onMouseUp.bind(this);
         this.canvas.onmouseout = this.onMouseUp.bind(this);
-
-        document.getElementById('playButton').onclick = this.timeline.play.bind(this.timeline);
-        document.getElementById('pauseButton').onclick = this.timeline.pause.bind(this.timeline);
-        document.getElementById('stopButton').onclick = this.timeline.stop.bind(this.timeline);
-        // document.getElementById('exportButton').onclick = this.timeline.export.bind(this);
 
         this.details = new Details(this.timeline);
         this.updateGUI();
@@ -160,6 +158,8 @@ class TimelineGui {
                 draggedKey.startTime = Math.max(0, this.xToTime(x));
                 draggedKey.endTime = draggedKey.startTime + draggedKey.duration;
                 this.sortTrackKeys(draggedKey.parent);
+                draggedKey.parent.updateTrackEnd();
+                this.timeline.findAnimationEnd();
                 this.details.emit('displayKey', this.selectedKeys[0]);
             }
             this.cancelKeyClick = true;
@@ -284,6 +284,7 @@ class TimelineGui {
             target: selectedTrack.target.target,
             propertyName: selectedTrack.propertyName,
             startValue: selectedTrack.target.target[selectedTrack.propertyName],
+            value: selectedTrack.target.target[selectedTrack.propertyName],
             endValue: selectedTrack.target.target[selectedTrack.propertyName],
             duration: 1,
             startTime: this.xToTime(mouseX),
@@ -317,8 +318,12 @@ class TimelineGui {
                 break;
             }
         }
+        
         this.selectedKeys = [newKey];
         this.details.emit('displayKey', this.selectedKeys[0]);
+        this.sortTrackKeys(selectedTrack.target);
+        selectedTrack.target.updateTrackEnd()
+        this.selectKeys(mouseX, mouseY);
     }
     /**
      * Based upon the click event, find the selected track.

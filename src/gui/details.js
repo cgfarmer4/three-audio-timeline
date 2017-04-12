@@ -121,7 +121,12 @@ class DetailsView extends EventEmitter {
                     <h2>${this.track.type}</h2>
                     <h3>${this.track.targetName}</h3>
                 </header>
-                `;
+                <ul>
+                    <li id="sampleRate">${this.track.sampleRate}</li>
+                    <li id="followingInput">${this.track.target}</li>
+                    <li><button>Record</button></li>
+                </ul>`;
+               
     }
     keyframeTrackTemplate() {
         return `<header>
@@ -137,7 +142,9 @@ class DetailsView extends EventEmitter {
                     ${this.followableInput()}
                     ${this.followTypeRadio()}
                     <!--<input type="text" placeholder="modify follow value"></input>-->
-                </div>`;
+                </div>
+                <button id="trackRemove"> Remove Parent Track </button>
+                `;
     }
     followableInput() {
         this.followableTracks = [];
@@ -194,6 +201,7 @@ class DetailsView extends EventEmitter {
     keyframeEvents() {
         let followInput = document.getElementById('followSelect');
         let followModifier = document.getElementById('followModifier');
+        let trackRemove = document.getElementById('trackRemove');
 
         followModifier.onclick = (event) => {
             this.track.keysMap[this.track.selectedProperty].followType = document.querySelector('input[name="followKeysOptions"]:checked').value;
@@ -205,6 +213,11 @@ class DetailsView extends EventEmitter {
                 event: event,
                 followableTracks: this.followableTracks
             });
+        }
+
+        trackRemove.onclick = (event) => {
+            this.timeline.tracks.splice(this.timeline.tracks.indexOf(this.track), 1);
+            document.getElementById('detailsView').remove();
         }
     }
     keyEvents() {
