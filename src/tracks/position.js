@@ -28,6 +28,14 @@ class Position {
 
         this.timeline.tracks.push(this);
     }
+    template() {
+        return `<header>
+                    <h1>${this.track.type}</h1>
+                </header>
+                <ul>
+                    <li>Name: ${this.track.targetName} </li>
+                </ul>`;
+    }
 }
 
 module.exports = Position;

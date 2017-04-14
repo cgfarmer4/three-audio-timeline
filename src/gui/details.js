@@ -51,30 +51,10 @@ class DetailsView extends EventEmitter {
     }
     displayTrack() {
         this.clearDetails();
-
-        let template = '';
-        switch (this.track.type) {
-            case 'number':
-                template = this.numberTemplate();
-                break;
-            case 'position':
-                template = this.positionTemplate();
-                break;
-            case 'key':
-                break;
-            case 'keyframe':
-                template = this.keyframeTrackTemplate();
-                break;
-            default:
-                break;
-        }
-
+        let template = this.track.template();
         this.details.innerHTML = template;
         document.body.appendChild(this.details);
-
-        if (this.track.type === 'keyframe') {
-            this.keyframeEvents();
-        }
+        this.track.detailsEvents();
     }
     displayKey() {
         this.clearDetails();
@@ -107,118 +87,6 @@ class DetailsView extends EventEmitter {
         this.details.innerHTML = template;
         document.body.appendChild(this.details);
         this.keyEvents();
-    }
-    positionTemplate() {
-        return `<header>
-                    <h1>${this.track.type}</h1>
-                </header>
-                <ul>
-                    <li>Name: ${this.track.targetName} </li>
-                </ul>`;
-    }
-    numberTemplate() {
-        return `<header>
-                    <h2>${this.track.type}</h2>
-                    <h3>${this.track.targetName}</h3>
-                </header>
-                <ul>
-                    <li id="sampleRate">${this.track.sampleRate}</li>
-                    <li id="followingInput">${this.track.target}</li>
-                    <li><button>Record</button></li>
-                </ul>`;
-               
-    }
-    keyframeTrackTemplate() {
-        return `<header>
-                        <h2>${this.track.type} track</h2>
-                        <h3>${this.track.targetName}.${this.track.selectedProperty}</h3>
-                </header>
-                <ul>
-                    <li>Start: ${this.track.startTime}</li>
-                    <li>End: ${this.track.endTime}</li>
-                </ul>
-                <div id="follow" style="padding: 10px">
-                    <h4 style="margin: 0 0 10px 0;">Follow input</h4>
-                    ${this.followableInput()}
-                    ${this.followTypeRadio()}
-                    <!--<input type="text" placeholder="modify follow value"></input>-->
-                </div>
-                <button id="trackRemove"> Remove Parent Track </button>
-                `;
-    }
-    followableInput() {
-        this.followableTracks = [];
-
-        this.timeline.tracks.forEach((track) => {
-            if (track.type === 'number') {
-                this.followableTracks.push(track);
-            }
-        })
-
-        let followableOptions = '<select id="followSelect"><option value="noFollow"> ---------- </option>';
-
-        this.followableTracks.forEach((track, index) => {
-            let selected = this.track.keysMap[this.track.selectedProperty];
-            if (selected.following && selected.followTrack.targetName === track.targetName) {
-                followableOptions += '<option value="' + index + '" selected>';
-            }
-            else {
-                followableOptions += '<option value="' + index + '">';
-            }
-
-            followableOptions += track.targetName + '</option>';
-        })
-
-        followableOptions += '</select>';
-
-        return followableOptions;
-    }
-    followTypeRadio() {
-        let selected = this.track.keysMap[this.track.selectedProperty];
-        let types = '<div id="followModifier" style="margin: 10px 0;">\
-        <div class="option1">';
-
-        if (selected.followType === 'ignoreKeys' || selected.followType !== 'useValues') {
-            types += '<input name="followKeysOptions" type="radio" id="radio1" value="ignoreKeys" checked=true>';
-        }
-        else {
-            types += '<input name="followKeysOptions" type="radio" id="radio1" value="ignoreKeys">';
-        }
-
-        types += '<label for="radio1">Key for every data point.</label></div><div class="option2">';
-
-        if (selected.followType === 'useValues') {
-            types += '<input name="followKeysOptions" type="radio" id="radio2" value="useValues" checked=true>';
-        }
-        else {
-            types += '<input name="followKeysOptions" type="radio" id="radio2" value="useValues">';
-        }
-
-        types += '<label for="radio2">Set all keys values to nearest data points.</label></div></div>';
-
-        return types;
-    }
-    keyframeEvents() {
-        let followInput = document.getElementById('followSelect');
-        let followModifier = document.getElementById('followModifier');
-        let trackRemove = document.getElementById('trackRemove');
-
-        followModifier.onclick = (event) => {
-            this.track.keysMap[this.track.selectedProperty].followType = document.querySelector('input[name="followKeysOptions"]:checked').value;
-            this.track.emit('follow:updateModifier', event);
-        }
-
-        followInput.onchange = (event) => {
-            this.track.emit('follow:update', {
-                event: event,
-                followableTracks: this.followableTracks
-            });
-        }
-
-        trackRemove.onclick = (event) => {
-            this.timeline.tracks.splice(this.timeline.tracks.indexOf(this.track), 1);
-            document.getElementById('detailsView').remove();
-        }
     }
     keyEvents() {
         let keyEdit = document.getElementById('keyEdit');
@@ -261,7 +129,6 @@ class DetailsView extends EventEmitter {
             keys.splice(keyIndex, 1);
             document.getElementById('detailsView').remove();
         }
-
     }
 }
 

@@ -16,7 +16,6 @@ class Keyframe extends Track {
         this.time = 0;
         this.keysMap = {};
 
-        this.on('follow:update', this.updateFollowingTrack.bind(this));
         this.on('follow:updateModifier', this.updateFollowingModifier.bind(this));
     }
     /**
@@ -69,10 +68,9 @@ class Keyframe extends Track {
     }
     /**
      * Type of follow changed.
-     * 
-     * @param {Object} eventData 
+     *  
      */
-    updateFollowingModifier(event) {
+    updateFollowingModifier() {
         let followKeyOptionSelected = document.querySelector('input[name="followKeysOptions"]:checked').value;
         this.keysMap[this.selectedProperty].followType = followKeyOptionSelected;
         this.setupKeysForFollowType(followKeyOptionSelected);
@@ -80,12 +78,11 @@ class Keyframe extends Track {
     /**
      * The input track modified the following track so update the GUI to reflect that.
      * 
-     * @param {Object} eventData 
+     * @param {Object} event 
      */
-    updateFollowingTrack(eventData) {
-        let followTracks = eventData.followableTracks;
+    updateFollowingTrack(event) {
+        let followTracks = this.followableTracks;
         let propertyTrack = this.keysMap[this.selectedProperty]; //select followed track.
-        let event = eventData.event;
 
         //remove properties if deselected
         if (event.target.value === 'noFollow') {
@@ -102,7 +99,6 @@ class Keyframe extends Track {
         let followKeyOptionSelected = document.querySelector('input[name="followKeysOptions"]:checked').value;
         let selected = followTracks[event.target.value];
 
-        
         propertyTrack.following = true;
         propertyTrack.followTrack = selected;
         propertyTrack.followType = followKeyOptionSelected;
@@ -125,7 +121,7 @@ class Keyframe extends Track {
                 let prevEndTime = 0;
                 let easing = "Linear.EaseNone";
                 let followTrack = this.keysMap[this.selectedProperty].followTrack;
-                let duration = followTrack.sampleRate;
+                let duration = Number(followTrack.sampleRate);
                 this.keysMap[this.selectedProperty].followKeys = [];
 
                 followTrack.data.forEach(function (dataPoint, index) {
@@ -211,6 +207,93 @@ class Keyframe extends Track {
         });
 
         this.endTime = endTime;
+    }
+    template() {
+        return `<header>
+                        <h2>${this.type} track</h2>
+                        <h3>${this.targetName}.${this.selectedProperty}</h3>
+                </header>
+                <ul>
+                    <li>Start: ${this.startTime}</li>
+                    <li>End: ${this.endTime}</li>
+                </ul>
+                <div id="follow" style="padding: 10px">
+                    <h4 style="margin: 0 0 10px 0;">Follow input</h4>
+                    ${this.followableInput()}
+                    ${this.followTypeRadio()}
+                    <!--<input type="text" placeholder="modify follow value"></input>-->
+                </div>
+                <button id="trackRemove"> Remove Parent Track </button>
+                `;
+    }
+    followableInput() {
+        this.followableTracks = [];
+
+        this.timeline.tracks.forEach((track) => {
+            if (track.type === 'number') {
+                this.followableTracks.push(track);
+            }
+        })
+
+        let followableOptions = '<select id="followSelect"><option value="noFollow"> ---------- </option>';
+
+        this.followableTracks.forEach((track, index) => {
+            let selected = this.keysMap[this.selectedProperty];
+            if (selected.following && selected.followTrack.targetName === track.targetName) {
+                followableOptions += '<option value="' + index + '" selected>';
+            }
+            else {
+                followableOptions += '<option value="' + index + '">';
+            }
+
+            followableOptions += track.targetName + '</option>';
+        })
+
+        followableOptions += '</select>';
+
+        return followableOptions;
+    }
+    followTypeRadio() {
+        let selected = this.keysMap[this.selectedProperty];
+        let types = '<div id="followModifier" style="margin: 10px 0;">\
+        <div class="option1">';
+
+        if (selected.followType === 'ignoreKeys' || selected.followType !== 'useValues') {
+            types += '<input name="followKeysOptions" type="radio" id="radio1" value="ignoreKeys" checked=true>';
+        }
+        else {
+            types += '<input name="followKeysOptions" type="radio" id="radio1" value="ignoreKeys">';
+        }
+
+        types += '<label for="radio1">Key for every data point.</label></div><div class="option2">';
+
+        if (selected.followType === 'useValues') {
+            types += '<input name="followKeysOptions" type="radio" id="radio2" value="useValues" checked=true>';
+        }
+        else {
+            types += '<input name="followKeysOptions" type="radio" id="radio2" value="useValues">';
+        }
+
+        types += '<label for="radio2">Set all keys values to nearest data points.</label></div></div>';
+
+        return types;
+    }
+    detailsEvents() {
+        let followInput = document.getElementById('followSelect');
+        let followModifier = document.getElementById('followModifier');
+        let trackRemove = document.getElementById('trackRemove');
+
+        followInput.onchange = this.updateFollowingTrack.bind(this);
+
+        followModifier.onclick = (event) => {
+            this.keysMap[this.selectedProperty].followType = document.querySelector('input[name="followKeysOptions"]:checked').value;
+            this.updateFollowingModifier();
+        }
+
+        trackRemove.onclick = (event) => {
+            this.timeline.tracks.splice(this.timeline.tracks.indexOf(this), 1);
+            document.getElementById('detailsView').remove();
+        }
     }
 }
 

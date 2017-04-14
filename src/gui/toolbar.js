@@ -28,14 +28,15 @@ class Toolbar {
         let template = `<div id="addTrackGui" style="float: left;  padding: 10px;">
             <input id="trackName" style=" margin: 0 10px;" type="text" placeholder="Name">
             <select id="trackType" style="">
-                <option selected value="key">Keyframe</option>
-                <option selected value="envelop">Envelop</option>
+                <option value="key">Keyframe</option>
+                <option selected value="speaker">Speaker</option>
+                <option value="input">Input</option>
             </select>
             <span id="selectTarget" style="margin: 0 5px; font-size: 12px;">Select input positioning or speaker data to record from Envelop Gui. </span>
             <input id="sampleRate" style=" margin: 0 10px;" type="text" placeholder="Sample Rate (e.g .1, 1, 5)">
             <button class="addTrack"> Add </button>
             </div>
-            <div class="close" style="float: left; padding: 10px 20px; background-color: #fff;"> x </div>`;
+            <div class="close" style="float: left; padding: 10px 20px; background-color: #fff; cursor: pointer;"> x </div>`;
         
         this.addTrackGui = document.createElement('div');
         this.addTrackGui.innerHTML = template;
@@ -52,9 +53,11 @@ class Toolbar {
             this.addTrackGui.remove();
         }
 
-        this.timeline.on('add:trackTarget', (event) => {
+        //TODO: Break out to remove dependency
+        this.timeline.envelop.on('add:trackTarget', (event) => {
+            let targetType = {};
+            this.newTrackTarget = event.name;
             this.addTrackGui.querySelector('#selectTarget').innerHTML = event.name;
-            this.newTrackTarget = event.target;
         });
     }
     /**
@@ -63,14 +66,15 @@ class Toolbar {
      */
     addTrackToTimeline(event) {
         let trackName = this.element.querySelector('#trackName').value;
-        let trackType = this.element.querySelector('#trackType')
+        let trackType = this.element.querySelector('#trackType');
         trackType = trackType.options[trackType.selectedIndex].value;
 
         switch (trackType) {
-            case 'envelop':
+            case 'speaker': 
                 let sampleRate = this.addTrackGui.querySelector('#sampleRate').value;
                 new NumberTrack(trackName, this.timeline, this.newTrackTarget, sampleRate);
                 break;
+
             case 'keyframe':
                 new KeyframeTrack(trackName, this.newTrackTarget, this.timeline);
                 break;

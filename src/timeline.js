@@ -113,6 +113,8 @@ class Timeline extends EventEmitter {
             }
         }
 
+        this.endTime = endTime;
+
         return endTime;
     }
     /**
@@ -120,6 +122,41 @@ class Timeline extends EventEmitter {
      */
     applyValues() {
         for (let i = 0; i < this.tracks.length; i++) {
+            // If recording, check to see if in accordance with sample rate value
+            // and ready for next tick in data saving.
+            if (this.tracks[i].recording) {
+                let recordingTrack = this.tracks[i];
+
+                if (recordingTrack.nextTick > this.endTime) {
+                    recordingTrack.nextTick = 0;
+                }
+
+                //- Calculate and check spot in array, if occupied, replace, if none, push.
+                if (recordingTrack.nextTick >= this.time && this.playing) {
+                    let dataIndex = Math.floor(recordingTrack.nextTick / recordingTrack.sampleRate);
+                    let value = recordingTrack.getTargetValue()
+
+                    //if first pass, set all init values up to that point to 0/null. 
+                    //TODO: Change color of init dots or allow null values? Think we need nulls.
+                    if (dataIndex !== 0 && !recordingTrack.data[dataIndex - 1]) {
+                        for (let x = 0; x < dataIndex; x++) {
+                            recordingTrack.data.push(null);
+                        }
+                        recordingTrack.data.push(value);
+                    }
+                    else if (recordingTrack.data[dataIndex] || recordingTrack.data[dataIndex] === null) {
+                        recordingTrack.data[dataIndex] = value;
+                    }
+                    //else if values are there up to that point. just push
+                    else {
+                        recordingTrack.data.push(value)
+                    }
+
+                    recordingTrack.nextTick += recordingTrack.sampleRate;
+                }
+                
+            }
+
             if (!this.tracks[i].keysMap) continue;
 
             //Iterate the keys in the track map
