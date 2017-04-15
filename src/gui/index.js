@@ -455,7 +455,7 @@ class TimelineGui {
     }
     /**
      * Current Time display
-     */ 
+     */
     updateTime() {
         this.toolbar.time.textContent = Math.floor(this.timeline.time * 100) / 100;
     }
@@ -467,12 +467,13 @@ class TimelineGui {
         this.updateTime();
         this.canvas.width = window.innerWidth;
         this.canvas.height = this.canvasHeight;
-        
+
         let w = this.canvas.width;
         let h = this.canvas.height;
 
         this.tracksScrollHeight = this.canvas.height - this.headerHeight - this.timeScrollHeight;
         this.timeline.tracks.forEach((track) => {
+            if (!track.keysMap) return this.numTracks += 1;
             this.numTracks += Object.keys(track.keysMap).length + 1;
         })
 
@@ -503,7 +504,11 @@ class TimelineGui {
         this.yshift = this.headerHeight;
 
         this.timeline.tracks.forEach((track, index) => {
-            this.drawTrack(track);
+            if(index === 0) {
+                let scrollY = this.tracksScrollY * (totalTracksHeight - this.canvas.height + this.headerHeight);
+                this.yshift -= scrollY;
+            }
+            this.drawTrack(track, this.yshift);
         });
 
         this.c.restore();
@@ -597,7 +602,7 @@ class TimelineGui {
      * 
      * @param {*} track  
      */
-    drawTrack(track) {
+    drawTrack(track, y) {
         let xshift = 5;
         let prevX = 0;
         let prevY = 0;
@@ -605,30 +610,31 @@ class TimelineGui {
         switch (track.type) {
             case 'keyframe':
                 //object track header background
-                this.drawRect(0, this.yshift + 1, this.trackLabelWidth, this.trackLabelHeight, '#FFFFFF');
+                this.drawRect(0, y + 1, this.trackLabelWidth, this.trackLabelHeight, '#FFFFFF');
 
                 //label color
                 this.c.fillStyle = '#000000';
 
                 //bottom track line
-                this.drawLine(0, this.yshift + this.trackLabelHeight, this.canvas.width, this.yshift + this.trackLabelHeight, '#FFFFFF');
+                this.drawLine(0, y + this.trackLabelHeight, this.canvas.width, y + this.trackLabelHeight, '#FFFFFF');
 
                 //draw track label
-                this.c.fillText(track.targetName, xshift, this.yshift + this.trackLabelHeight / 2 + 4);
+                this.c.fillText(track.targetName, xshift, y + this.trackLabelHeight / 2 + 4);
 
                 // Shift label position and change bg color
                 xshift += 10;
-                this.yshift += this.trackLabelHeight;
+                this.yshift = y += this.trackLabelHeight;
 
                 for (let property in track.keysMap) {
                     let keys = [];
                     (track.keysMap[property].following) ? keys = track.keysMap[property].followKeys : keys = track.keysMap[property].keys;
-                    this.yshift += this.trackLabelHeight;
-                    track.keysMap[property].position = this.yshift;
+
+                    y += this.trackLabelHeight;
+                    track.keysMap[property].position = y;
 
                     this.c.fillStyle = '#555555';
-                    this.c.fillText(property, xshift, this.yshift - this.trackLabelHeight / 4);
-                    this.drawLine(0, this.yshift, this.canvas.width, this.yshift, '#FFFFFF');
+                    this.c.fillText(property, xshift, y - this.trackLabelHeight / 4);
+                    this.drawLine(0, y, this.canvas.width, y, '#FFFFFF');
 
                     keys.forEach((keyProperties, i) => {
                         let first = (i === 0);
@@ -658,7 +664,7 @@ class TimelineGui {
 
                 track.data.forEach((dataPoint, index) => {
                     let xStart = this.timeToX(track.sampleRate * index);
-                    let yStart = y + track.labelHeight - (dataPoint * (track.labelHeight / track.max));
+                    let yStart = this.yshift + track.labelHeight - (dataPoint * (track.labelHeight / track.max));
 
                     this.drawLine(xStart, yStart, prevX, prevY, '#000000')
 
@@ -674,7 +680,6 @@ class TimelineGui {
                 })
 
                 this.yshift += track.labelHeight;
-
                 break;
 
             // The position colors match the AxixHelper API in THREE

@@ -64,7 +64,6 @@ class Keyframe extends Track {
         }
 
         this.endTime += duration;
-        this.labelHeight += 20;
         
         return this;
     }

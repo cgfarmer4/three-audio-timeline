@@ -34,8 +34,10 @@ class Toolbar {
                 <option selected value="channel">Channel</option>
                 <option value="input">Input</option>
             </select>
-            <span id="selectTarget" style="margin: 0 5px; font-size: 12px;">Select input positioning or channel data to record from Envelop Gui. </span>
+            <span id="selectTarget" style="margin: 0 5px; font-size: 12px;">Select target with cursor. </span>
             <input id="sampleRate" style=" margin: 0 10px;" type="text" placeholder="Sample Rate (e.g .1, 1, 5)">
+            <input id="inputModifier" style=" margin: 0 10px;" type="text" placeholder="Input modifier (e.g. *20, +100)">
+            
             <button class="addTrack"> Add </button>
             </div>
             <div class="close" style="float: left; padding: 10px 20px; background-color: #fff; cursor: pointer;"> x </div>`;
@@ -74,7 +76,9 @@ class Toolbar {
         switch (trackType) {
             case 'channel': 
                 let sampleRate = this.addTrackGui.querySelector('#sampleRate').value;
-                new NumberTrack(trackName, this.timeline, this.newTrackTarget, sampleRate);
+                let inputModifier = this.addTrackGui.querySelector('#inputModifier').value;
+
+                new NumberTrack(trackName, this.timeline, this.newTrackTarget, sampleRate, inputModifier);
                 break;
 
             case 'keyframe':
