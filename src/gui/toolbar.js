@@ -12,6 +12,7 @@ class Toolbar {
         this.element.querySelector('#playButton').onclick = this.timeline.play.bind(this.timeline);
         this.element.querySelector('#pauseButton').onclick = this.timeline.pause.bind(this.timeline);
         this.element.querySelector('#stopButton').onclick = this.timeline.stop.bind(this.timeline);
+        this.time = this.element.querySelector('#currentTime');
     }
     template() {
         return `<div id="toolbar" style="margin-top: -20px;">
@@ -22,6 +23,7 @@ class Toolbar {
             <button id="stopButton">stop</button>
             <button id="addTrack">add track</button>
             <!--<button id="loop">loop</button>>-->
+            <div id="currentTime" style="display: inline-block;">0</div>
         </div>`;
     }
     addTrack() {
@@ -29,10 +31,10 @@ class Toolbar {
             <input id="trackName" style=" margin: 0 10px;" type="text" placeholder="Name">
             <select id="trackType" style="">
                 <option value="key">Keyframe</option>
-                <option selected value="speaker">Speaker</option>
+                <option selected value="channel">Channel</option>
                 <option value="input">Input</option>
             </select>
-            <span id="selectTarget" style="margin: 0 5px; font-size: 12px;">Select input positioning or speaker data to record from Envelop Gui. </span>
+            <span id="selectTarget" style="margin: 0 5px; font-size: 12px;">Select input positioning or channel data to record from Envelop Gui. </span>
             <input id="sampleRate" style=" margin: 0 10px;" type="text" placeholder="Sample Rate (e.g .1, 1, 5)">
             <button class="addTrack"> Add </button>
             </div>
@@ -70,7 +72,7 @@ class Toolbar {
         trackType = trackType.options[trackType.selectedIndex].value;
 
         switch (trackType) {
-            case 'speaker': 
+            case 'channel': 
                 let sampleRate = this.addTrackGui.querySelector('#sampleRate').value;
                 new NumberTrack(trackName, this.timeline, this.newTrackTarget, sampleRate);
                 break;
@@ -79,10 +81,6 @@ class Toolbar {
                 new KeyframeTrack(trackName, this.newTrackTarget, this.timeline);
                 break;
         }
-    }   
-    update() {
-        //Update time counter
-
     }
 }
 
