@@ -4,16 +4,18 @@
  * Stores array of values from an input that is integers or floats.
  */
 class NumberTrack {
-    constructor(name, timeline, followInputTarget, sampleRate) {
+    constructor(name, timeline, followInputTarget, sampleRate, inputModifier) {
         this.id = name;
         this.targetName = name || {};
+        this.inputModifier = inputModifier || "";
         this.followInputTarget = followInputTarget;
         this.timeline = timeline;
         this.type = 'number';
         this.data = [];
+        this.unmodifiedValues = [];
         this.min = 0;
+        this.inputChanges = 0;
         this.max = 1;
-        this.currentValue = 0;
         this.nextTick = 0;
         this.labelHeight = 50;
         this.recording = false;
@@ -32,10 +34,13 @@ class NumberTrack {
             this.timeline.tracks.splice(this.timeline.tracks.indexOf(this), 1);
             document.getElementById('detailsView').remove();
         }
+
+        this.inputModiferElement = document.getElementById('inputModifier');
+        this.inputModiferElement.onchange = this.updateModifier.bind(this);
     }
     getTargetValue() {
         if (this.followInputTarget.indexOf('Speaker') > -1) {
-           return this.timeline.envelop.maxValues.speakers[this.followInputTarget];
+            return this.timeline.envelop.maxValues.speakers[this.followInputTarget];
         }
         else {
             console.log("INPUT!", this.timeline.envelop.maxValues.inputs[this.followInputTarget]);
@@ -46,7 +51,7 @@ class NumberTrack {
         this.data.push(value);
     }
     recordInSyncWithTimeline() {
-        if(this.recording) {
+        if (this.recording) {
             this.recording = false;
             this.timelineRecord.textContent = 'Timeline Record Loop';
         }
@@ -56,14 +61,41 @@ class NumberTrack {
             this.timelineRecord.textContent = 'Stop';
         }
     }
+    updateModifier(event) {
+        //back up data values
+        if (this.inputChanges === 0) {
+            this.unmodifiedValues = this.unmodifiedValues.concat(this.data);
+        }
+
+        this.inputModifier = this.inputModiferElement.value;
+        this.inputChanges += 1;
+
+        if (this.inputModifier === '') {
+            this.data = this.unmodifiedValues;
+            this.min = Math.min.apply(null, this.data);
+            this.max = Math.max.apply(null, this.data);
+            return;
+        }
+
+        //update data
+        this.data.forEach((dataPoint, index, returnArr) => {
+            let value = `${dataPoint} ${this.inputModifier}`;
+            returnArr[index] = eval(value);
+        });
+
+        //update draw template
+        this.min = Math.min.apply(null, this.data);
+        this.max = Math.max.apply(null, this.data);
+    }
     template() {
         return `<header>
                     <h2>${this.type}</h2>
                     <h3>${this.targetName}</h3>
                 </header>
                 <ul>
-                    <li id="sampleRate">Sample Rate: ${this.sampleRate}</li>
-                    <li id="followingInput">${this.followInputTarget}</li>
+                    <li id="followingInput">Follow: <br> <span style="font-weight: 700; font-size: 12px;">${this.followInputTarget}</span></li>
+                    <li>Sample Rate: <input id="sampleRate" type="text" value="${this.sampleRate}"</li>
+                    <li><input type="text" id="inputModifier" placeholder="Input Modifier" value="${this.inputModifier}"/></li>
                     <li><button id="recordMomentary">Momentary Record</button></li>
                     <li><button id="recordTimeline">Timeline Record Loop</button></li>
                     <li><button id="removeTrack">Remove Track</button></li>
@@ -73,4 +105,3 @@ class NumberTrack {
 }
 
 module.exports = NumberTrack;
- 

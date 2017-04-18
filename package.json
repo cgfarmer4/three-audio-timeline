@@ -18,5 +18,8 @@
   "bugs": {
     "url": ""
   },
-  "homepage": ""
+  "homepage": "",
+  "dependencies": {
+    "three": "^0.84.0"
+  }
 }

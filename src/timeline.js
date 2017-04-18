@@ -12,6 +12,7 @@ class Timeline extends EventEmitter {
         super();
         this.name = "Global";
         this.tracks = [];
+        this.targets = [];
         this.time = 0;
         this.totalTime = 0;
         this.loopCount = 0;
@@ -176,7 +177,6 @@ class Timeline extends EventEmitter {
 
                     if (this.time >= currentTrack.startTime && !currentTrack.hasStarted) {
                         let startValue = currentTrack.target[currentTrack.propertyName];
-
                         if (startValue.length && startValue.indexOf('px') > -1) {
                             currentTrack.startValue = Number(startValue.replace('px', ''));
                             currentTrack.unit = 'px';

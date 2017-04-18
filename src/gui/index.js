@@ -465,7 +465,7 @@ class TimelineGui {
     updateGUI() {
         this.numTracks = 0;
         this.updateTime();
-        this.canvas.width = window.innerWidth;
+        this.canvas.width = window.innerWidth - 15;
         this.canvas.height = this.canvasHeight;
 
         let w = this.canvas.width;
@@ -657,7 +657,13 @@ class TimelineGui {
                 this.c.fillStyle = '#000000';
 
                 //draw track label
-                this.c.fillText(track.targetName, xshift, y + track.labelHeight / 2);
+                this.c.fillText(track.targetName, xshift, y + track.labelHeight / 2 + 5);
+                let max = Math.floor(track.max * 100) / 100;
+                let min = Math.floor(track.min * 100) / 100;
+
+                this.c.fillStyle = '#0000ff';
+                this.c.fillText("Max: " + max, this.trackLabelWidth - 45, y + 15);
+                this.c.fillText("Min: " + min, this.trackLabelWidth - 45, y + track.labelHeight - 5);
 
                 prevX = this.timeToX(0);
                 prevY = this.yshift + track.labelHeight;
@@ -666,7 +672,9 @@ class TimelineGui {
                     let xStart = this.timeToX(track.sampleRate * index);
                     let yStart = this.yshift + track.labelHeight - (dataPoint * (track.labelHeight / track.max));
 
-                    this.drawLine(xStart, yStart, prevX, prevY, '#000000')
+                    if(index !== 0) {
+                        this.drawLine(xStart, yStart, prevX, prevY, '#000000')
+                    }
 
                     // circle
                     this.c.beginPath();
