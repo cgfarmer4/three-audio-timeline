@@ -130,7 +130,7 @@ class Toolbar {
         }
 
         // On target click, iterate the properties of the mesh
-        let propertiesSelect = '<select id="targetProperties1" style=""><option value="0"> ------ <option>';
+        let propertiesSelect = `<label style="margin: 0 5px;">${this.newTrackTarget.name}</label><select id="targetProperties1" style=""><option value="0"> ------ <option>`;
         for(let property in this.newTrackTarget) {
             propertiesSelect += `<option>${property}</option>`;
         }

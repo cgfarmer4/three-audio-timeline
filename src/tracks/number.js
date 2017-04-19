@@ -39,8 +39,8 @@ class NumberTrack {
         this.inputModiferElement.onchange = this.updateModifier.bind(this);
     }
     getTargetValue() {
-        if (this.followInputTarget.indexOf('Speaker') > -1) {
-            return this.timeline.envelop.maxValues.speakers[this.followInputTarget];
+        if (this.followInputTarget.indexOf('Channel') > -1) {
+            return this.timeline.envelop.maxValues.channels[this.followInputTarget];
         }
         else {
             console.log("INPUT!", this.timeline.envelop.maxValues.inputs[this.followInputTarget]);
