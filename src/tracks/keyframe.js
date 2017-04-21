@@ -95,7 +95,6 @@ class Keyframe extends Track {
     }
     /**
      * Type of follow changed.
-     *  
      */
     updateFollowingModifier() {
         let followKeyOptionSelected = document.querySelector('input[name="followKeysOptions"]:checked').value;
@@ -104,7 +103,6 @@ class Keyframe extends Track {
     }
     /**
      * The input track modified the following track so update the GUI to reflect that.
-     * 
      * @param {Object} event 
      */
     updateFollowingTrack(event) {
@@ -126,20 +124,44 @@ class Keyframe extends Track {
         let followKeyOptionSelected = document.querySelector('input[name="followKeysOptions"]:checked').value;
         let selected = followTracks[event.target.value];
 
+        if(selected.type === 'position') {
+            this.followPropertyPosition();
+        }
+
         propertyTrack.following = true;
         propertyTrack.followTrack = selected;
         propertyTrack.followType = followKeyOptionSelected;
         this.setupKeysForFollowType(followKeyOptionSelected);
         this.updateTrackEnd();
     }
+    followPropertyPosition() {
+        let followSelect = document.getElementById('followSelect');
+        let positions = `<label for="radio4"> x </label>
+                        <input name="followPropertyPosition" type="radio" id="radio4" value="x" checked=true>
+                        <label for="radio5"> y </label>
+                        <input name="followPropertyPosition" type="radio" id="radi5" value="y">
+                        <label for="radio6"> z </label>
+                        <input name="followPropertyPosition" type="radio" id="radio6" value="z">`;
+
+        let positionOptions = document.createElement('div');
+        positionOptions.id = 'positionOptions';
+        positionOptions.innerHTML = positions;
+        followSelect.parentNode.insertBefore(positionOptions, followSelect.nextSibling);
+        this.followingPropertyPosition = 'x';
+        
+        positionOptions.onchange = (event) => {
+            this.followingPropertyPosition = event.target.value;
+            this.updateFollowingModifier();
+        }
+    }
     /**
      * Create keyframe tracks based on the follow type. 
-     * 
      * @param {String} followType ignoreKeys, useValues
      */
     setupKeysForFollowType(followType) {
         if (!this.keysMap[this.selectedProperty].following) return;
         this.oldEndTime = this.endTime;
+        let data = [];
 
         switch (followType) {
 
@@ -149,17 +171,25 @@ class Keyframe extends Track {
                 let easing = "Linear.EaseNone";
                 let followTrack = this.keysMap[this.selectedProperty].followTrack;
                 let duration = Number(followTrack.sampleRate);
+                
+                if(followTrack.type === 'position') {
+                    data = followTrack.data[this.followingPropertyPosition];
+                }
+                else {
+                    data = followTrack.data;
+                }
+
                 this.keysMap[this.selectedProperty].followKeys = [];
 
-                followTrack.data.forEach(function (dataPoint, index) {
+                data.forEach(function (dataPoint, index) {
                     let startValue = dataPoint;
                     let endValue = 0;
 
-                    if (followTrack.data.length < index + 1) {
-                        endValue = followTrack.data[this.track.followTrack.data.length - 1];
+                    if (data.length < index + 1) {
+                        endValue = data[this.track.data.length - 1];
                     }
                     else {
-                        endValue = followTrack.data[index];
+                        endValue = data[index];
                     }
 
                     let keyframeInfo = {
@@ -194,18 +224,25 @@ class Keyframe extends Track {
                 let following = this.keysMap[this.selectedProperty].followTrack;
                 this.keysMap[this.selectedProperty].followKeys = Object.assign([], this.keysMap[this.selectedProperty].keys);
 
+                if (following.type === 'position') {
+                    data = following.data[this.followingPropertyPosition];
+                }
+                else {
+                    data = following.data;
+                }
+
                 this.keysMap[this.selectedProperty].followKeys.forEach((key, index, returnArr) => {
-                    let followingTimeLength = following.sampleRate * following.data.length;
+                    let followingTimeLength = following.sampleRate * data.length;
 
                     let startTimeIndex = Math.floor(key.startTime * following.sampleRate);
                     let endTimeIndex = Math.ceil(key.endTime * following.sampleRate)
 
-                    if (endTimeIndex > following.data.length) {
-                        endTimeIndex = following.data.length - 1;
+                    if (endTimeIndex > data.length) {
+                        endTimeIndex = data.length - 1;
                     }
 
-                    returnArr[index].startValue = following.data[startTimeIndex];
-                    returnArr[index].endValue = following.data[endTimeIndex];
+                    returnArr[index].startValue = data[startTimeIndex];
+                    returnArr[index].endValue = data[endTimeIndex];
                 })
 
                 break;
@@ -217,7 +254,6 @@ class Keyframe extends Track {
     /**
      * Iterate all of the keys and find the largest value. 
      * Then update the end of the track so we can update our animation.
-     * 
      */
     updateTrackEnd(propertyToUpdate) {
         let keys = [];
@@ -262,6 +298,9 @@ class Keyframe extends Track {
             if (track.type === 'number') {
                 this.followableTracks.push(track);
             }
+            else if(track.type === 'position') {
+                this.followableTracks.push(track);
+            }
         })
 
         let followableOptions = '<select id="followSelect"><option value="noFollow"> ---------- </option>';
@@ -279,7 +318,6 @@ class Keyframe extends Track {
         })
 
         followableOptions += '</select>';
-
         return followableOptions;
     }
     followTypeRadio() {

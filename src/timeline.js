@@ -192,7 +192,6 @@ class Timeline extends EventEmitter {
         }
         catch (e) {
             alert('Failed setting up Timeline code', e);
-
         }
     }
     /**
@@ -214,20 +213,45 @@ class Timeline extends EventEmitter {
                     let dataIndex = Math.floor(recordingTrack.nextTick / recordingTrack.sampleRate);
                     let value = recordingTrack.getTargetValue()
 
-                    //if first pass, set all init values up to that point to 0/null. 
-                    //TODO: Change color of init dots or allow null values? Think we need nulls.
-                    if (dataIndex !== 0 && !recordingTrack.data[dataIndex - 1]) {
-                        for (let x = 0; x < dataIndex; x++) {
-                            recordingTrack.data.push(null);
+                    if (recordingTrack.type === 'number') {
+                        //if first pass, set all init values up to that point to 0/null. 
+                        //TODO: Change color of init dots or allow null values? Think we need nulls.
+                        if (dataIndex !== 0 && !recordingTrack.data[dataIndex - 1]) {
+                            for (let x = 0; x < dataIndex; x++) {
+                                recordingTrack.data.push(null);
+                            }
+                            recordingTrack.data.push(value);
                         }
-                        recordingTrack.data.push(value);
+                        else if (recordingTrack.data[dataIndex] || recordingTrack.data[dataIndex] === null) {
+                            recordingTrack.data[dataIndex] = value;
+                        }
+                        //else if values are there up to that point. just push
+                        else {
+                            recordingTrack.data.push(value)
+                        }
                     }
-                    else if (recordingTrack.data[dataIndex] || recordingTrack.data[dataIndex] === null) {
-                        recordingTrack.data[dataIndex] = value;
-                    }
-                    //else if values are there up to that point. just push
-                    else {
-                        recordingTrack.data.push(value)
+                    else if (recordingTrack.type === 'position') {
+                        if (dataIndex !== 0 && !recordingTrack.data.x[dataIndex - 1]) {
+                            for (let x = 0; x < dataIndex; x++) {
+                                recordingTrack.data.x.push(null);
+                                recordingTrack.data.y.push(null);
+                                recordingTrack.data.z.push(null);
+                            }
+                            recordingTrack.data.x.push(value[0]);
+                            recordingTrack.data.y.push(value[1]);
+                            recordingTrack.data.z.push(value[2]);
+                        }
+                        else if (recordingTrack.data.x[dataIndex] || recordingTrack.data.x[dataIndex] === null) {
+                            recordingTrack.data.x[dataIndex] = value[0];
+                            recordingTrack.data.y[dataIndex] = value[1];
+                            recordingTrack.data.z[dataIndex] = value[2];
+                        }
+                        //else if values are there up to that point. just push
+                        else {
+                            recordingTrack.data.x.push(value[0]);
+                            recordingTrack.data.y.push(value[1]);
+                            recordingTrack.data.z.push(value[2]);
+                        }
                     }
 
                     recordingTrack.nextTick += recordingTrack.sampleRate;

@@ -739,8 +739,10 @@ class TimelineGui {
                 track.data.x.forEach((dataPoint, index) => {
                     let xStart = this.timeToX(track.sampleRate * index);
                     let yStart = this.yshift + (track.labelHeight / 6) - (dataPoint * ((track.labelHeight / 3 / 2) / track.max));
-
-                    this.drawLine(xStart, yStart, prevX, prevY, '#FF0000')
+                    
+                    if (index !== 0) {
+                        this.drawLine(xStart, yStart, prevX, prevY, '#FF0000')
+                    }
 
                     // circle
                     this.c.beginPath();
@@ -763,7 +765,9 @@ class TimelineGui {
                     let xStart = this.timeToX(track.sampleRate * index);
                     let yStart = this.yshift + (track.labelHeight / 6) - (dataPoint * ((track.labelHeight / 3 / 2) / track.max));
 
-                    this.drawLine(xStart, yStart, prevX, prevY, '#008000')
+                    if (index !== 0) {
+                        this.drawLine(xStart, yStart, prevX, prevY, '#008000');
+                    }
 
                     // circle
                     this.c.beginPath();
@@ -785,7 +789,9 @@ class TimelineGui {
                     let xStart = this.timeToX(track.sampleRate * index);
                     let yStart = this.yshift + (track.labelHeight / 6) - (dataPoint * ((track.labelHeight / 3 / 2) / track.max));
 
-                    this.drawLine(xStart, yStart, prevX, prevY, '#0000FF')
+                    if (index !== 0) {
+                        this.drawLine(xStart, yStart, prevX, prevY, '#0000FF');
+                    }
 
                     // circle
                     this.c.beginPath();

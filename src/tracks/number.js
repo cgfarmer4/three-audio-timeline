@@ -7,15 +7,15 @@ class NumberTrack {
     constructor(name, timeline, followInputTarget, sampleRate, inputModifier) {
         this.id = name;
         this.targetName = name || {};
-        this.inputModifier = inputModifier || "";
+        this.inputModifier = inputModifier || '';
         this.followInputTarget = followInputTarget;
         this.timeline = timeline;
         this.type = 'number';
         this.data = [];
         this.unmodifiedValues = [];
         this.min = 0;
-        this.inputChanges = 0;
         this.max = 1;
+        this.inputChanges = 0;
         this.nextTick = 0;
         this.labelHeight = 50;
         this.recording = false;
@@ -96,9 +96,9 @@ class NumberTrack {
                     <li id="followingInput">Follow: <br> <span style="font-weight: 700; font-size: 12px;">${this.followInputTarget}</span></li>
                     <li>Sample Rate: <input id="sampleRate" type="text" value="${this.sampleRate}"</li>
                     <li><input type="text" id="inputModifier" placeholder="Input Modifier" value="${this.inputModifier}"/></li>
-                    <li><button id="recordMomentary">Momentary Record</button></li>
-                    <li><button id="recordTimeline">Timeline Record Loop</button></li>
-                    <li><button id="removeTrack">Remove Track</button></li>
+                    <li><button class="mediumButton" id="recordMomentary">Momentary Record</button></li>
+                    <li><button class="mediumButton" id="recordTimeline">Record Loop</button></li>
+                    <li><button class="mediumButton" id="removeTrack">Remove Track</button></li>
                 </ul>`;
 
     }

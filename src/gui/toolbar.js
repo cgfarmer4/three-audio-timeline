@@ -2,6 +2,7 @@
 const THREE = require('three');
 const KeyframeTrack = require('../tracks/keyframe');
 const NumberTrack = require('../tracks/number');
+const PositionTrack = require('../tracks/position');
 
 class Toolbar {
     constructor(timeline) {
@@ -33,7 +34,7 @@ class Toolbar {
                 <option selected value="noValue"> ----- </option>
                 <option value="keyframe">Keyframe</option>
                 <option value="channel">Channel</option>
-                <option value="input">Input</option>
+                <option value="position">Input</option>
             </select>
             <span id="selectTarget" style="margin: 0 5px; font-size: 12px;"></span>
             <input id="sampleRate" style="display: none; margin: 0 10px;" type="text" placeholder="Sample Rate (e.g .1, 1, 5)">
@@ -80,7 +81,7 @@ class Toolbar {
                     this.inputModifierElement.style.display = 'inline-block';
                     break;
 
-                case 'input':
+                case 'position':
                     this.selectTargetElement.textContent = 'Select input from Envelop.';
                     this.sampleRateElement.style.display = 'inline-block';
                     this.inputModifierElement.style.display = 'inline-block';
@@ -160,12 +161,14 @@ class Toolbar {
     addTrackToTimeline(event) {
         let trackName = this.element.querySelector('#trackName').value;
         let trackType = this.element.querySelector('#trackType');
+        let sampleRate = 1;
+        let inputModifier = 1;
         trackType = trackType.options[trackType.selectedIndex].value;
 
         switch (trackType) {
             case 'channel':
-                let sampleRate = this.addTrackGui.querySelector('#sampleRate').value;
-                let inputModifier = this.addTrackGui.querySelector('#inputModifier').value;
+                sampleRate = this.addTrackGui.querySelector('#sampleRate').value;
+                inputModifier = this.addTrackGui.querySelector('#inputModifier').value;
 
                 new NumberTrack(trackName, this.timeline, this.newTrackTarget, sampleRate, inputModifier);
                 break;
@@ -180,6 +183,13 @@ class Toolbar {
                 keyframeTrack.keyframe({
                     [property2.value] : 0 // omg love you new ES.
                 }, 0, "Linear.EaseNone")
+                break;
+
+            case 'position':
+                sampleRate = this.addTrackGui.querySelector('#sampleRate').value;
+                inputModifier = this.addTrackGui.querySelector('#inputModifier').value;
+
+                new PositionTrack(trackName, this.timeline, this.newTrackTarget, sampleRate, inputModifier);
                 break;
         }
     }
