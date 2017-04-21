@@ -16,13 +16,12 @@ class Toolbar {
         this.time = this.element.querySelector('#currentTime');
     }
     template() {
-        return `<div id="toolbar" style="margin-top: -20px;">
+        return `<div id="toolbar" style="margin-top: -27px;">
             <!--<p id="currentTime>0:00</p>-->
-            <button id="playButton">play</button>
-            <button id="pauseButton">pause</button>
-            <!--<button id="exportButton">export</button>-->
-            <button id="stopButton">stop</button>
-            <button id="addTrack">add track</button>
+            <div id="playButton"></div>
+            <button id="pauseButton"></button>
+            <button id="stopButton"></button>
+            <button id="addTrack"></button>
             <!--<button id="loop">loop</button>>-->
             <div id="currentTime" style="display: inline-block;">0</div>
         </div>`;
@@ -40,9 +39,9 @@ class Toolbar {
             <input id="sampleRate" style="display: none; margin: 0 10px;" type="text" placeholder="Sample Rate (e.g .1, 1, 5)">
             <input id="inputModifier" style="display: none; margin: 0 10px;" type="text" placeholder="Input modifier (e.g. *20, +100)">
             
-            <button class="addTrack"> Add </button>
+            <button class="addTrack mediumButton" style="color: #000; margin-top: 4px;"> Add </button>
             </div>
-            <div class="close" style="float: left; padding: 10px 20px; background-color: #fff; cursor: pointer;"> x </div>`;
+            <div class="close" style="font-size: 24px; float: left; padding: 14px 20px 15px 20px; background-color: #fff; cursor: pointer;"> x </div>`;
 
         this.addTrackGui = document.createElement('div');
         this.addTrackGui.innerHTML = template;

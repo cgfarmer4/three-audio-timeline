@@ -81,7 +81,7 @@ class DetailsView extends EventEmitter {
                         <input id="keyEndValue" type="text" value="${this.key.endValue}">
                     </li>
                     <li>${this.easingInput(this.key.easing)}</li>
-                    <li><button id="keyRemove"> Remove </button></li>
+                    <li><button class="mediumButton" id="keyRemove"> Remove </button></li>
                 </ul>`;
 
         this.details.innerHTML = template;

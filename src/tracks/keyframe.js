@@ -15,6 +15,7 @@ class Keyframe extends Track {
         this.endTime = 0;
         this.time = 0;
         this.keysMap = {};
+        this.selectedProperty = "";
 
         this.on('follow:updateModifier', this.updateFollowingModifier.bind(this));
     }
@@ -35,6 +36,7 @@ class Keyframe extends Track {
             let keyframeInfo = {
                 id: this.targetName + "." + propertyName,
                 hasStarted: false,
+                hasEnded: false,
                 timeline: this.timeline,
                 name: propertyName,
                 targetName: this.targetName,
@@ -64,8 +66,32 @@ class Keyframe extends Track {
         }
 
         this.endTime += duration;
-        
+
         return this;
+    }
+    rebuildKeysMapProperty(property, dataMap) {
+
+        //Iterate the keys in each
+        dataMap.keys.forEach((key, index, returnArr) => {
+            returnArr[index].target = this.target;
+            returnArr[index].parent = this;
+            returnArr[index].hasStarted = false;
+            returnArr[index].hasEnded = false;
+        });
+
+        //Following keys
+        if (!this.keysMap[property]) {
+            this.keysMap[property] = {
+                keys: dataMap.keys,
+                following: dataMap.following,
+                followTrack: dataMap.followTrack,
+                followType: dataMap.followType,
+                followingKeys: dataMap.followingKeys,
+                position: dataMap.position
+            };
+        }
+
+        this.updateTrackEnd(property);
     }
     /**
      * Type of follow changed.
@@ -141,6 +167,7 @@ class Keyframe extends Track {
                         name: followTrack.targetName + " -> x",
                         targetName: followTrack.targetName,
                         hasStarted: false,
+                        hasEnded: false,
                         timeline: this.timeline,
                         target: this.target,
                         propertyName: "x",
@@ -192,19 +219,20 @@ class Keyframe extends Track {
      * Then update the end of the track so we can update our animation.
      * 
      */
-    updateTrackEnd() {
+    updateTrackEnd(propertyToUpdate) {
         let keys = [];
         let endTime = 0;
+        let selected = propertyToUpdate || this.selectedProperty;
 
-        if (this.keysMap[this.selectedProperty].following) {
-            keys = this.keysMap[this.selectedProperty].followKeys;
+        if (this.keysMap[selected].following) {
+            keys = this.keysMap[selected].followKeys;
         }
         else {
-            keys = this.keysMap[this.selectedProperty].keys;
+            keys = this.keysMap[selected].keys;
         }
 
         keys.forEach((key) => {
-            if(key.endTime > endTime) endTime = key.endTime;
+            if (key.endTime > endTime) endTime = key.endTime;
         });
 
         this.endTime = endTime;
@@ -224,7 +252,7 @@ class Keyframe extends Track {
                     ${this.followTypeRadio()}
                     <!--<input type="text" placeholder="modify follow value"></input>-->
                 </div>
-                <button id="trackRemove"> Remove Parent Track </button>
+                <button class="mediumButton" id="trackRemove"> Remove Parent </button>
                 `;
     }
     followableInput() {

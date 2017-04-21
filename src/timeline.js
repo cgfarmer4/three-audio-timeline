@@ -1,6 +1,7 @@
 'use_strict';
 const Easing = require('./easing.js');
 const EventEmitter = require('events').EventEmitter
+const Tracks = require('./tracks');
 
 /**
  * Timeline to manage javascript elements and their properties per keyframe.
@@ -17,11 +18,11 @@ class Timeline extends EventEmitter {
         this.totalTime = 0;
         this.loopCount = 0;
         this.loopMode = -1;
-        this.playing = true;
+        this.playing = false;
     }
     /**
      * Possible values of n:
-     * 
+     *  
      * -1 infinite loop
      *  0  play forever without looping, continue increasing time even after last animation
      *  1  play once and stop at the time the last animation finishes
@@ -119,6 +120,82 @@ class Timeline extends EventEmitter {
         return endTime;
     }
     /**
+     * Export timeline values.
+     */
+    getJson() {
+        let timelineJson = '';
+
+        timelineJson = JSON.stringify(this.tracks, function (key, value) {
+            if (key === 'timeline' ||
+                key === 'parent' ||
+                key === '_events'
+            ) {
+                return undefined;
+            }
+            else {
+                return value;
+            }
+        }, '\t');
+
+        return timelineJson;
+    }
+    /**
+     * Parse the incoming JSON stream and re-init objects for use
+     * in the timeline data structure.
+     */
+    resetTracks(tracksCode, userScene) {
+        try {
+            let tracks = JSON.parse(tracksCode);
+            this.tracks = [];
+
+            tracks.forEach((track) => {
+                let target = {};
+
+                //-- Find track target in scene based on trackid
+                if (track.id.indexOf('App') > -1) {
+                    target = eval(track.id);
+                }
+                else { //-- Otherwise look in userScene for object.
+                    userScene.children.forEach((child) => {
+                        if (child.name === 'track.id') {
+                            target = child;
+                        }
+                    });
+
+                    if (!target) { //-- If not found, console and skip.
+                        console.log("Track parsing skipped as target was not found for:", track.id);
+                        return;
+                    }
+                }
+
+                switch (track.type) {
+                    case 'keyframe':
+                        let keysTrack = new Tracks.Keyframe(track.id, target, this);
+
+                        //Iterate the keysMap
+                        for (let key in track.keysMap) {
+                            keysTrack.rebuildKeysMapProperty(key, track.keysMap[key]);
+                        }
+
+                        break;
+
+                    case 'number':
+                        break;
+
+                    case 'position':
+                        break;
+                }
+
+            });
+
+            this.findAnimationEnd();
+        }
+        catch (e) {
+            alert('Failed setting up Timeline code', e);
+
+        }
+    }
+    /**
      * Iterate animation values and apply the values with the proper duration and easing.
      */
     applyValues() {
@@ -155,7 +232,7 @@ class Timeline extends EventEmitter {
 
                     recordingTrack.nextTick += recordingTrack.sampleRate;
                 }
-                
+
             }
 
             if (!this.tracks[i].keysMap) continue;
