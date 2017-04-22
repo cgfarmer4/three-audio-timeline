@@ -684,14 +684,22 @@ class TimelineGui {
                         this.drawLine(xStart, yStart, prevX, prevY, '#000000')
                     }
 
+                    if(dataPoint != 0 && !dataPoint) {
+                        this.c.fillStyle = '#FF69B4';
+                        this.c.strokeStyle = '#FF69B4';
+                    }
+                    else {
+                        this.c.fillStyle = '#000000';
+                    }
+
                     // circle
                     this.c.beginPath();
-                    this.c.arc(xStart, yStart, 2, 0, 2 * Math.PI, false);
+                    this.c.arc(xStart, yStart, 4, 0, 4 * Math.PI, false);
                     this.c.fill();
                     this.c.stroke();
                     this.c.closePath();
 
-                    prevX = xStart;
+                    prevX = xStart + 4;
                     prevY = yStart;
                 })
 
@@ -752,6 +760,14 @@ class TimelineGui {
                         this.drawLine(xStart, yStart, prevX, prevY, '#FF0000')
                     }
 
+                    if (dataPoint != 0 && !dataPoint) {
+                        this.c.fillStyle = '#FF69B4';
+                        this.c.strokeStyle = '#FF69B4';
+                    }
+                    else {
+                        this.c.fillStyle = '#FF0000';
+                    }
+
                     // circle
                     this.c.beginPath();
                     this.c.arc(xStart, yStart, 2, 0, 2 * Math.PI, false);
@@ -759,7 +775,7 @@ class TimelineGui {
                     this.c.stroke();
                     this.c.closePath();
 
-                    prevX = xStart;
+                    prevX = xStart + 4;
                     prevY = yStart;
                 })
 
@@ -777,6 +793,14 @@ class TimelineGui {
                         this.drawLine(xStart, yStart, prevX, prevY, '#008000');
                     }
 
+                    if (dataPoint != 0 && !dataPoint) {
+                        this.c.fillStyle = '#FF69B4';
+                        this.c.strokeStyle = '#FF69B4';
+                    }
+                    else {
+                        this.c.fillStyle = '#008000';
+                    }
+
                     // circle
                     this.c.beginPath();
                     this.c.arc(xStart, yStart, 2, 0, 2 * Math.PI, false);
@@ -784,7 +808,7 @@ class TimelineGui {
                     this.c.stroke();
                     this.c.closePath();
 
-                    prevX = xStart;
+                    prevX = xStart + 4;
                     prevY = yStart;
                 })
 
@@ -801,6 +825,14 @@ class TimelineGui {
                         this.drawLine(xStart, yStart, prevX, prevY, '#0000FF');
                     }
 
+                    if (dataPoint != 0 && !dataPoint) {
+                        this.c.fillStyle = '#FF69B4';
+                        this.c.strokeStyle = '#FF69B4';
+                    }
+                    else {
+                        this.c.fillStyle = '#0000FF';
+                    }
+
                     // circle
                     this.c.beginPath();
                     this.c.arc(xStart, yStart, 2, 0, 2 * Math.PI, false);
@@ -808,7 +840,7 @@ class TimelineGui {
                     this.c.stroke();
                     this.c.closePath();
 
-                    prevX = xStart;
+                    prevX = xStart + 4;
                     prevY = yStart;
                 })
 
