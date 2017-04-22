@@ -1,11 +1,11 @@
 const Keyframe = require('./keyframe');
 const Number = require('./number');
-const Position = require('./position');
+const VectorPosition = require('./vector');
 
 const Tracks = {
     Keyframe: Keyframe,
     Number: Number,
-    Position: Position
+    Position: VectorPosition
 }
 
 module.exports = Tracks;

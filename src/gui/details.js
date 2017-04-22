@@ -20,14 +20,14 @@ class DetailsView extends EventEmitter {
         })
     }
     clearDetails() {
-        if (this.details) {
-            while (this.details.firstChild) {
-                this.details.removeChild(this.details.firstChild);
+        if (this.element) {
+            while (this.element.firstChild) {
+                this.element.removeChild(this.element.firstChild);
             }
         }
         else {
-            this.details = document.createElement('div');
-            this.details.id = 'detailsView';
+            this.element = document.createElement('div');
+            this.element.id = 'detailsView';
         }
     }
     easingInput(easingSelected) {
@@ -52,8 +52,9 @@ class DetailsView extends EventEmitter {
     displayTrack() {
         this.clearDetails();
         let template = this.track.template();
-        this.details.innerHTML = template;
-        document.body.appendChild(this.details);
+        this.element.innerHTML = template;
+        this.element.style.display = 'block';
+        document.body.appendChild(this.element);
         this.track.detailsEvents();
     }
     displayKey() {
@@ -84,8 +85,8 @@ class DetailsView extends EventEmitter {
                     <li><button class="mediumButton" id="keyRemove"> Remove </button></li>
                 </ul>`;
 
-        this.details.innerHTML = template;
-        document.body.appendChild(this.details);
+        this.element.innerHTML = template;
+        document.body.appendChild(this.element);
         this.keyEvents();
     }
     keyEvents() {

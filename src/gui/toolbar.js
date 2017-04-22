@@ -2,7 +2,7 @@
 const THREE = require('three');
 const KeyframeTrack = require('../tracks/keyframe');
 const NumberTrack = require('../tracks/number');
-const PositionTrack = require('../tracks/position');
+const PositionTrack = require('../tracks/vector');
 
 class Toolbar {
     constructor(timeline) {
@@ -36,7 +36,7 @@ class Toolbar {
                 <option value="channel">Channel</option>
                 <option value="position">Input</option>
             </select>
-            <span id="selectTarget" style="margin: 0 5px; font-size: 12px;"></span>
+            <span id="selectTarget" style="margin: 0 5px; font-size: 12px; color: #FFF"></span>
             <input id="sampleRate" style="display: none; margin: 0 10px;" type="text" placeholder="Sample Rate (e.g .1, 1, 5)">
             <input id="inputModifier" style="display: none; margin: 0 10px;" type="text" placeholder="Input modifier (e.g. *20, +100)">
             

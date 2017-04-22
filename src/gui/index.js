@@ -389,11 +389,19 @@ class TimelineGui {
         for (let z = 0; z < this.heightMap.length; z++) {
             let trackGuiDisplay = this.heightMap[z];
             if (mouseY >= trackGuiDisplay.startY && mouseY <= trackGuiDisplay.endY) {
-                if (this.heightMap[z].type === 'label') return;
-                this.details.emit('displayTrack', {
-                    target: this.heightMap[z].target,
-                    property: this.heightMap[z].propertyName
-                });
+                if (this.heightMap[z].type === 'label'){
+                    this.details.emit('displayTrack', {
+                        target: this.heightMap[z].target,
+                        property: Object.keys(this.heightMap[z].target.keysMap)[0]
+                    });
+                }
+                else {
+                    this.details.emit('displayTrack', {
+                        target: this.heightMap[z].target,
+                        property: this.heightMap[z].propertyName
+                    });
+                }
+                
                 return this.heightMap[z];
             }
         }

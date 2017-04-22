@@ -1,9 +1,9 @@
 'use_strict';
 
 /**
- * Stores array of values for a 3D element's positiioning.
+ * Stores array of values for a 3D element's positioning.
  */
-class Position {
+class VectorPosition {
     constructor(name, timeline, followInputTarget, sampleRate, inputModifier) {
         this.id = name;
         this.targetName = name || {};
@@ -109,4 +109,4 @@ class Position {
     }
 }
 
-module.exports = Position;
+module.exports = VectorPosition;
