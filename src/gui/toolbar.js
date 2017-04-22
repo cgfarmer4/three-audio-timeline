@@ -29,8 +29,8 @@ class Toolbar {
     }
     addTrack() {
         let template = `<div id="addTrackGui" style="float: left;  padding: 10px;">
-            <input id="trackName" style=" margin: 0 10px;" type="text" placeholder="Name">
-            <select id="trackType" style="">
+            <input id="trackName" style="font-size: 14px; padding: 9px 10px 13px 10px; margin: 0 10px; width: 150px; border: 3px solid #000;" type="text" placeholder="Name">
+            <select class="form-select" id="trackType" style="">
                 <option selected value="noValue"> ----- </option>
                 <option value="keyframe">Keyframe</option>
                 <option value="channel">Channel</option>
@@ -40,12 +40,14 @@ class Toolbar {
             <input id="sampleRate" style="display: none; margin: 0 10px;" type="text" placeholder="Sample Rate (e.g .1, 1, 5)">
             <input id="inputModifier" style="display: none; margin: 0 10px;" type="text" placeholder="Input modifier (e.g. *20, +100)">
             
-            <button class="addTrack mediumButton" style="color: #000; margin-top: 4px;"> Add </button>
+            <button class="addTrack mediumButton" style="margin-top: 4px;"> Add </button>
             </div>
-            <div class="close" style="font-size: 24px; float: left; padding: 14px 20px 15px 20px; background-color: #fff; cursor: pointer;"> x </div>`;
+            <div class="close" style="font-size: 24px; float: right; padding: 27px 20px; background-color: #fff; cursor: pointer;"> x </div>`;
 
         this.addTrackGui = document.createElement('div');
         this.addTrackGui.innerHTML = template;
+        this.addTrackGui.style.background = "#000";
+        this.addTrackGui.style.overflow = "hidden";
         this.element.appendChild(this.addTrackGui);
         this.selectTargetElement = this.addTrackGui.querySelector('#selectTarget');
         this.sampleRateElement = this.addTrackGui.querySelector('#sampleRate');
@@ -130,7 +132,7 @@ class Toolbar {
         }
 
         // On target click, iterate the properties of the mesh
-        let propertiesSelect = `<label style="margin: 0 5px;">${this.newTrackTarget.name}</label><select id="targetProperties1" style=""><option value="0"> ------ <option>`;
+        let propertiesSelect = `<label style="margin: 0 5px;">${this.newTrackTarget.name}</label><select class="form-select" id="targetProperties1" style=""><option value="0"> -- Select Property -- <option>`;
         for(let property in this.newTrackTarget) {
             propertiesSelect += `<option>${property}</option>`;
         }

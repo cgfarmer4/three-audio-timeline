@@ -465,7 +465,7 @@ class TimelineGui {
     updateGUI() {
         this.numTracks = 0;
         this.updateTime();
-        this.canvas.width = window.innerWidth - 15;
+        this.canvas.width = window.innerWidth;
         this.canvas.height = this.canvasHeight;
 
         let w = this.canvas.width;

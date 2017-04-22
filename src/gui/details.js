@@ -31,7 +31,7 @@ class DetailsView extends EventEmitter {
         }
     }
     easingInput(easingSelected) {
-        let easingOptions = '<select id="easingInput">';
+        let easingOptions = '<select class="form-select" id="easingInput" style="margin: 5px 0;">';
 
         for (let easingFunctionFamilyName in Easing) {
             let easingFunctionFamily = Easing[easingFunctionFamilyName];
@@ -73,7 +73,7 @@ class DetailsView extends EventEmitter {
                         <input id="keyDuration" type="text" value="${this.key.duration}">
                     </li>
                     <li>
-                        <label for="keyEndTime">End Time:</label>
+                        <label for="keyEndTime">End Time: (calculated)</label>
                         <input id="keyEndTime" type="text" value="${this.key.endTime}" disabled>
                     </li>
                     <li>

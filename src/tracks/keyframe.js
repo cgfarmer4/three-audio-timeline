@@ -124,7 +124,7 @@ class Keyframe extends Track {
         let followKeyOptionSelected = document.querySelector('input[name="followKeysOptions"]:checked').value;
         let selected = followTracks[event.target.value];
 
-        if(selected.type === 'position') {
+        if (selected.type === 'position') {
             this.followPropertyPosition();
         }
 
@@ -148,7 +148,7 @@ class Keyframe extends Track {
         positionOptions.innerHTML = positions;
         followSelect.parentNode.insertBefore(positionOptions, followSelect.nextSibling);
         this.followingPropertyPosition = 'x';
-        
+
         positionOptions.onchange = (event) => {
             this.followingPropertyPosition = event.target.value;
             this.updateFollowingModifier();
@@ -171,8 +171,8 @@ class Keyframe extends Track {
                 let easing = "Linear.EaseNone";
                 let followTrack = this.keysMap[this.selectedProperty].followTrack;
                 let duration = Number(followTrack.sampleRate);
-                
-                if(followTrack.type === 'position') {
+
+                if (followTrack.type === 'position') {
                     data = followTrack.data[this.followingPropertyPosition];
                 }
                 else {
@@ -275,20 +275,19 @@ class Keyframe extends Track {
     }
     template() {
         return `<header>
-                        <h2>${this.type} track</h2>
+                        <h2>${this.type}</h2>
                         <h3>${this.targetName}.${this.selectedProperty}</h3>
                 </header>
                 <ul>
                     <li>Start: ${this.startTime}</li>
                     <li>End: ${this.endTime}</li>
                 </ul>
-                <div id="follow" style="padding: 10px">
-                    <h4 style="margin: 0 0 10px 0;">Follow input</h4>
+                <div id="follow" style="padding: 0 10px 10px 10px">
                     ${this.followableInput()}
                     ${this.followTypeRadio()}
                     <!--<input type="text" placeholder="modify follow value"></input>-->
                 </div>
-                <button class="mediumButton" id="trackRemove"> Remove Parent </button>
+                <button class="mediumButton" id="trackRemove" style="margin-left: 10px;"> Remove Parent </button>
                 `;
     }
     followableInput() {
@@ -298,12 +297,12 @@ class Keyframe extends Track {
             if (track.type === 'number') {
                 this.followableTracks.push(track);
             }
-            else if(track.type === 'position') {
+            else if (track.type === 'position') {
                 this.followableTracks.push(track);
             }
         })
 
-        let followableOptions = '<select id="followSelect"><option value="noFollow"> ---------- </option>';
+        let followableOptions = '<select class="form-select" id="followSelect"><option value="noFollow"> -- Follow Data -- </option>';
 
         this.followableTracks.forEach((track, index) => {
             let selected = this.keysMap[this.selectedProperty];
