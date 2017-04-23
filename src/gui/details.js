@@ -75,7 +75,7 @@ class DetailsView extends EventEmitter {
                     </li>
                     <li>
                         <label for="keyEndTime">End Time: (calculated)</label>
-                        <input id="keyEndTime" type="text" value="${this.key.endTime}" disabled>
+                        <input id="keyEndTime" type="text" value="${Math.floor(this.key.endTime * 100) / 100}" disabled>
                     </li>
                     <li>
                         <label for="keyEndValue">End Value:</label>
@@ -102,6 +102,7 @@ class DetailsView extends EventEmitter {
             this.key.duration = Number(event.target.value);
             this.key.endTime = this.key.duration + Number(this.key.startTime);
             keyEndTime.value = this.key.endTime;
+            this.key.parent.emit('change:updateTime');
         }
 
         start.onchange = (event) => {
@@ -109,6 +110,7 @@ class DetailsView extends EventEmitter {
             this.key.time = this.key.startTime;
             this.key.endTime = this.key.startTime + Number(this.key.duration);
             keyEndTime.value = this.key.endTime;
+            this.key.parent.emit('change:updateTime');
         }
 
         keyEndValue.onchange = (event) => {
@@ -123,11 +125,11 @@ class DetailsView extends EventEmitter {
             let keys = [];
             let parent = this.key.parent;
             let selectedKeyGroup = parent.keysMap[parent.selectedProperty];
-            
+
             (selectedKeyGroup.following) ? keys = selectedKeyGroup.followKeys : keys = selectedKeyGroup.keys;
             let keyIndex = keys.indexOf(this.key);
-
             keys.splice(keyIndex, 1);
+            parent.emit('change:updateTime');
             document.getElementById('detailsView').remove();
         }
     }

@@ -169,7 +169,7 @@ class TimelineGui {
                 draggedKey.startTime = Math.max(0, this.xToTime(x));
                 draggedKey.endTime = draggedKey.startTime + draggedKey.duration;
                 this.sortTrackKeys(draggedKey.parent);
-                draggedKey.parent.updateTrackEnd();
+                draggedKey.parent.emit('change:updateTime');
                 this.timeline.findAnimationEnd();
                 this.details.emit('displayKey', this.selectedKeys[0]);
             }
@@ -330,9 +330,9 @@ class TimelineGui {
         }
 
         this.selectedKeys = [newKey];
+        selectedTrack.target.emit('change:updateTime');
         this.details.emit('displayKey', this.selectedKeys[0]);
         this.sortTrackKeys(selectedTrack.target);
-        selectedTrack.target.updateTrackEnd()
         this.selectKeys(mouseX, mouseY);
     }
     /**

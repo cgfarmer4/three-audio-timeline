@@ -15,9 +15,10 @@ class Keyframe extends Track {
         this.endTime = 0;
         this.time = 0;
         this.keysMap = {};
-        this.selectedProperty = "";
+        this.selectedProperty = '';
 
         this.on('follow:updateModifier', this.updateFollowingModifier.bind(this));
+        this.on('change:updateTime', this.updateTrackEnd.bind(this));
     }
     /**
      * Properties of each keyframe on creation. Referred to as keys elsewhere.
@@ -280,7 +281,7 @@ class Keyframe extends Track {
                 </header>
                 <ul>
                     <li>Start: ${this.startTime}</li>
-                    <li>End: ${this.endTime}</li>
+                    <li>End: ${Math.floor(this.endTime * 100) / 100 }</li>
                 </ul>
                 <div id="follow" style="padding: 0 10px 10px 10px">
                     ${this.followableInput()}
