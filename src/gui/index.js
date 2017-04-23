@@ -5,6 +5,7 @@ const Toolbar = require('./toolbar');
 const Details = require('./details');
 const DataUtils = require('./data');
 
+
 /**
  * Draw and manage timeline view.
  * @param {Timeline} timeline
@@ -54,6 +55,17 @@ class TimelineGui {
         //Canvas Element
         this.canvas = document.createElement("canvas");
         this.c = this.canvas.getContext("2d");
+
+        // TODO: Fix DPI.
+        // this.ratio = window.devicePixelRatio || 1;
+        // if (1 != this.ratio) {
+        //     this.canvas.style.width = this.canvas.width + 'px';
+        //     this.canvas.style.height = this.canvas.height + 'px';
+        //     this.canvas.width *= this.ratio;
+        //     this.canvas.height *= this.ratio;
+        //     this.c.scale(this.ratio, this.ratio);
+        // }
+
         this.container.appendChild(this.canvas);
 
         //- GUI Events
@@ -167,9 +179,8 @@ class TimelineGui {
 
         if (this.draggingTime) {
             this.timeline.time = this.xToTime(x);
-            var animationEnd = this.timeline.findAnimationEnd();
             if (this.timeline.time < 0) this.timeline.time = 0;
-            if (this.timeline.time > animationEnd) this.timeline.time = animationEnd;
+            if (this.timeline.time > this.timeline.endTime) this.timeline.time = this.timeline.endTime;
         }
 
         if (this.draggingTimeScale) {
@@ -473,25 +484,30 @@ class TimelineGui {
     updateGUI() {
         this.numTracks = 0;
         this.updateTime();
+
         this.canvas.width = window.innerWidth;
         this.canvas.height = this.canvasHeight;
 
         let w = this.canvas.width;
         let h = this.canvas.height;
-
-        this.tracksScrollHeight = this.canvas.height - this.headerHeight - this.timeScrollHeight;
+        let totalTracksHeight = 20;
         this.timeline.tracks.forEach((track) => {
-            if (!track.keysMap) return this.numTracks += 1;
-            this.numTracks += Object.keys(track.keysMap).length + 1;
+            if (!track.keysMap) { 
+                totalTracksHeight += track.labelHeight;
+            }
+            else {
+                totalTracksHeight += (1 + Object.keys(track.keysMap).length) * track.labelHeight;
+            }
         })
 
-        let totalTracksHeight = this.numTracks * this.trackLabelHeight;
+        this.tracksScrollHeight = this.canvas.height - this.headerHeight - this.timeScrollHeight;
+        
         this.tracksScrollRatio = this.tracksScrollHeight / totalTracksHeight;
-        this.tracksScrollThumbHeight = Math.min(Math.max(20, this.tracksScrollHeight * this.tracksScrollRatio), this.tracksScrollHeight);
+        this.tracksScrollThumbHeight = Math.min(Math.max(10, this.tracksScrollHeight * this.tracksScrollRatio), this.tracksScrollHeight);
 
         this.timeScrollWidth = this.canvas.width - this.trackLabelWidth - this.tracksScrollWidth;
         let animationEnd = this.timeline.findAnimationEnd();
-        let visibleTime = this.xToTime(this.canvas.width - this.trackLabelWidth - this.tracksScrollWidth) - this.xToTime(0); //100 to get some space after lask key
+        let visibleTime = this.xToTime(this.canvas.width - this.trackLabelWidth - this.tracksScrollWidth) - this.xToTime(100); //100 to get some space after lask key
         let timeScrollRatio = Math.max(0, Math.min(visibleTime / animationEnd, 1));
         this.timeScrollThumbWidth = timeScrollRatio * this.timeScrollWidth;
         if (this.timeScrollThumbPos + this.timeScrollThumbWidth > this.timeScrollWidth) {
@@ -587,8 +603,8 @@ class TimelineGui {
      * @param {*} time 
      */
     timeToX(time) {
-        var animationEnd = this.timeline.findAnimationEnd();
-        var visibleTime = this.xToTime(this.canvas.width - this.trackLabelWidth - this.tracksScrollWidth) - this.xToTime(20); //50 to get some additional space
+        let animationEnd = this.timeline.findAnimationEnd();
+        let visibleTime = this.xToTime(this.canvas.width - this.trackLabelWidth - this.tracksScrollWidth) - this.xToTime(20); //50 to get some additional space
         if (visibleTime < animationEnd) {
             time -= (animationEnd - visibleTime) * this.timeScrollX;
         }
@@ -600,9 +616,9 @@ class TimelineGui {
      * @param {*} x 
      */
     xToTime(x) {
-        var animationEnd = this.timeline.findAnimationEnd();
-        var visibleTime = (this.canvas.width - this.trackLabelWidth - this.tracksScrollWidth - 20) / (this.timeScale * 200);
-        var timeShift = Math.max(0, (animationEnd - visibleTime) * this.timeScrollX);
+        let animationEnd = this.timeline.findAnimationEnd();
+        let visibleTime = (this.canvas.width - this.trackLabelWidth - this.tracksScrollWidth - 20) / (this.timeScale * 200);
+        let timeShift = Math.max(0, (animationEnd - visibleTime) * this.timeScrollX);
         return (x - this.trackLabelWidth - 10) / (this.timeScale * 200) + timeShift;
     }
     /**
@@ -618,38 +634,38 @@ class TimelineGui {
         switch (track.type) {
             case 'keyframe':
                 //object track header background
-                this.drawRect(0, y + 1, this.trackLabelWidth, this.trackLabelHeight, '#FFFFFF');
+                this.drawRect(0, y + 1, this.trackLabelWidth, track.labelHeight, '#FFFFFF');
 
                 //label color
                 this.c.fillStyle = '#000000';
 
                 //bottom track line
-                this.drawLine(0, y + this.trackLabelHeight, this.canvas.width, y + this.trackLabelHeight, '#FFFFFF');
+                this.drawLine(0, y + track.labelHeight, this.canvas.width, y + track.labelHeight, '#FFFFFF');
 
                 //draw track label
-                this.c.fillText(track.targetName, xshift, y + this.trackLabelHeight / 2 + 4);
+                this.c.fillText(track.targetName, xshift, y + track.labelHeight / 2 + 4);
 
                 // Shift label position and change bg color
                 xshift += 10;
-                this.yshift = y += this.trackLabelHeight;
+                this.yshift = y += track.labelHeight;
 
                 for (let property in track.keysMap) {
                     let keys = [];
                     (track.keysMap[property].following) ? keys = track.keysMap[property].followKeys : keys = track.keysMap[property].keys;
 
-                    y += this.trackLabelHeight;
+                    y += track.labelHeight;
                     track.keysMap[property].position = y;
 
                     this.c.fillStyle = '#555555';
-                    this.c.fillText(property, xshift, y - this.trackLabelHeight / 4);
+                    this.c.fillText(property, xshift, y - track.labelHeight / 4);
                     this.drawLine(0, y, this.canvas.width, y, '#FFFFFF');
 
                     keys.forEach((keyProperties, i) => {
                         let first = (i === 0);
                         let last = (i == keys.length - 1);
 
-                        this.drawRombus(this.timeToX(keyProperties.startTime), track.keysMap[property].position - this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, "#999999", true, true, keyProperties.selected ? "#FF0000" : "#666666");
-                        this.drawRombus(this.timeToX(keyProperties.startTime), track.keysMap[property].position - this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, this.trackLabelHeight * 0.5, "#DDDDDD", !first, !last);
+                        this.drawRombus(this.timeToX(keyProperties.startTime), track.keysMap[property].position - track.labelHeight * 0.5, track.labelHeight * 0.5, track.labelHeight * 0.5, "#999999", true, true, keyProperties.selected ? "#FF0000" : "#666666");
+                        this.drawRombus(this.timeToX(keyProperties.startTime), track.keysMap[property].position - track.labelHeight * 0.5, track.labelHeight * 0.5, track.labelHeight * 0.5, "#DDDDDD", !first, !last);
                     })
 
                     this.yshift = track.keysMap[property].position;
