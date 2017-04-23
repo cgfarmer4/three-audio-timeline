@@ -10,7 +10,7 @@ const DataUtils = require('./data');
  * Draw and manage timeline view.
  * @param {Timeline} timeline
  */
-class TimelineGui {
+class TimelineUIView {
     constructor(timeline) {
         this.timeline = timeline;
         this.trackLabelWidth = 108;
@@ -951,4 +951,4 @@ class TimelineGui {
     }
 }
 
-module.exports = TimelineGui;
+module.exports = TimelineUIView;
