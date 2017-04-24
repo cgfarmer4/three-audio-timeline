@@ -710,7 +710,7 @@ class TimelineUIView {
 
                     // circle
                     this.c.beginPath();
-                    this.c.arc(xStart, yStart, 4, 0, 4 * Math.PI, false);
+                    this.c.arc(xStart, yStart, 2, 0, 2 * Math.PI, false);
                     this.c.fill();
                     this.c.stroke();
                     this.c.closePath();

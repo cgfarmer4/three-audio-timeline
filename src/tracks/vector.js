@@ -59,7 +59,7 @@ class VectorPosition {
     recordInSyncWithTimeline() {
         if (this.recording) {
             this.recording = false;
-            this.timelineRecord.textContent = 'Timeline Record Loop';
+            this.timelineRecord.textContent = 'Record';
         }
         else {
             this.recording = true;
@@ -102,8 +102,8 @@ class VectorPosition {
                     <li id="followingInput">Follow: <br> <span style="font-weight: 700; font-size: 12px;">${this.followInputTarget}</span></li>
                     <li>Sample Rate: <input id="sampleRate" type="text" value="${this.sampleRate}"</li>
                     <li><input type="text" id="inputModifier" placeholder="Input Modifier" value="${this.inputModifier}"/></li>
-                    <li><button class="mediumButton" id="recordMomentary">Momentary Record</button></li>
-                    <li><button class="mediumButton" id="recordTimeline"> Record Loop</button></li>
+                    <li><button class="mediumButton" id="recordMomentary">Push Value</button></li>
+                    <li><button class="mediumButton" id="recordTimeline"> Record </button></li>
                     <li><button class="mediumButton" id="removeTrack">Remove Track</button></li>
                 </ul>`;
     }
