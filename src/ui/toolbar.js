@@ -145,6 +145,7 @@ class Toolbar {
             if (Object.keys(this.newTrackTarget[event.target.value]).length) {
                 let moreProperties = document.createElement('select');
                 moreProperties.style.margin = '0 10px';
+                moreProperties.classList.add('form-select');
                 moreProperties.id = 'targetProperties2';
                 moreProperties.innerHTML = '<option value="0"> ------ <option>';
                 for (let property in this.newTrackTarget[event.target.value]) {

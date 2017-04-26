@@ -157,8 +157,9 @@ class Timeline extends EventEmitter {
                 }
                 else { //-- Otherwise look in userScene for object.
                     userScene.children.forEach((child) => {
-                        if (child.name === 'track.id') {
-                            target = child;
+                        if (child.name === track.id.substr(0, track.id.indexOf('.'))) {
+                            let targetProperty = track.targetName.replace(child.name + '.', '');
+                            target = child[targetProperty];
                         }
                     });
 
