@@ -15,7 +15,7 @@ class DetailsView extends EventEmitter {
 
         this.on('displayKey', (key) => {
             this.key = key;
-            this.track.selectedProperty = key.propertyName;
+            this.track.selectedProperty = key.parent.selectedProperty;
             this.displayKey();
         })
     }
@@ -62,6 +62,7 @@ class DetailsView extends EventEmitter {
         let template = `<header>
                     <h2>key</h2>
                     <h3>${this.key.id}</h3>
+                    <h4>${this.key.parent.selectedProperty}</h4>
                 </header>
                 <ul id="keyEdit">
                     <!--<li><label>Time:</label> <span style="font-size: 12px">${this.key.time}</span></li>-->

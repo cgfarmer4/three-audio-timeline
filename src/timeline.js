@@ -17,7 +17,7 @@ class Timeline extends EventEmitter {
         this.time = 0;
         this.totalTime = 0;
         this.loopCount = 0;
-        this.loopMode = -1;
+        this.loopMode = 1;
         this.playing = false;
     }
     /**
@@ -39,6 +39,7 @@ class Timeline extends EventEmitter {
     stop() {
         this.playing = false;
         this.time = 0;
+        this.restartTracks();
     }
     /**
      * Pause
@@ -50,6 +51,11 @@ class Timeline extends EventEmitter {
      * Play
      */
     play() {
+        if(this.time > this.endTime) {
+            this.time = 0;
+            this.restartTracks();
+        }
+        
         this.playing = true;
     }
     /**
@@ -70,27 +76,31 @@ class Timeline extends EventEmitter {
             let animationEnd = this.findAnimationEnd();
 
             if (this.time > animationEnd) {
-                if (this.loopMode == -1 || (this.loopCount < this.loopMode)) {
+                if (this.loopMode == -1 || (this.loopCount <= this.loopMode)) {
                     this.time = 0;
                     this.loopCount++;
 
                     for (let i = 0; i < this.tracks.length; i++) {
-                        if (!this.tracks[i].keysMap) continue;
                         let track = this.tracks[i];
+                        if (track.keysMap) {                            
 
-                        for (let key in track.keysMap) {
-                            let keys = track.keysMap[key].keys;
-                            keys.forEach(function (key, index, returnArr) {
-                                returnArr[index].hasStarted = false;
-                                returnArr[index].hasEnded = false;
-                            })
-
-                            if (track.keysMap[key].following) {
-                                track.keysMap[key].followKeys.forEach(function (key, index, returnArr) {
+                            for (let key in track.keysMap) {
+                                let keys = track.keysMap[key].keys;
+                                keys.forEach(function (key, index, returnArr) {
                                     returnArr[index].hasStarted = false;
                                     returnArr[index].hasEnded = false;
                                 })
+
+                                if (track.keysMap[key].following) {
+                                    track.keysMap[key].followKeys.forEach(function (key, index, returnArr) {
+                                        returnArr[index].hasStarted = false;
+                                        returnArr[index].hasEnded = false;
+                                    })
+                                }
                             }
+                        }
+                        else if (track.recording) {
+                            track.nextTick = 0;
                         }
                     }
                 }
@@ -139,16 +149,40 @@ class Timeline extends EventEmitter {
 
         return timelineJson;
     }
+    restartTracks() {
+        this.tracks.forEach((track, index, tracksReturn) => {
+            //Iterate keysmap keys
+            if (track.keysMap) {
+                for (let property in track.keysMap) {
+                    track.keysMap[property].keys.forEach((key, index, keysReturn) => {
+                        keysReturn[index].hasStarted = false;
+                        keysReturn[index].hasEnded = false;
+                    })
+                }
+            }
+            else if (track.recording) {
+                tracksReturn[index].nextTick = 0;
+            }
+        });
+    }
     /**
      * Parse the incoming JSON stream and re-init objects for use
      * in the timeline data structure.
      */
     resetTracks(tracksCode, userScene) {
         try {
-            let tracks = JSON.parse(tracksCode);
+            let tracksToParse = [];
             this.tracks = [];
 
-            tracks.forEach((track) => {
+            if (typeof tracksCode === 'string') {
+                tracksToParse = JSON.parse(tracksCode);
+            }
+            else {
+                tracksToParse = tracksCode;
+            }
+            
+            
+            tracksToParse.forEach((track) => {
                 let target = {};
 
                 //-- Find track target in scene based on trackid
@@ -177,13 +211,16 @@ class Timeline extends EventEmitter {
                         for (let key in track.keysMap) {
                             keysTrack.rebuildKeysMapProperty(key, track.keysMap[key]);
                         }
-
                         break;
 
                     case 'number':
+                        let numberTrack = new Tracks.Number(track.id, this, track.followInputTarget, track.sampleRate, track.inputModifier);
+                        numberTrack.data = track.data;
                         break;
 
                     case 'position':
+                        let positionTrack = new Tracks.Position(track.id, this, track.followInputTarget, track.sampleRate, track.inputModifier);
+                        positionTrack.data = track.data;
                         break;
                 }
 
@@ -222,9 +259,10 @@ class Timeline extends EventEmitter {
                         recordingTrack.data.z[dataIndex] = value[2];
                     }
 
+                }
+                else if(recordingTrack.nextTick < this.time && this.playing) {
                     recordingTrack.nextTick += recordingTrack.sampleRate;
                 }
-
             }
 
             if (!this.tracks[i].keysMap) continue;

@@ -93,6 +93,14 @@ class VectorPosition {
         this.min = Math.min.apply(null, this.data);
         this.max = Math.max.apply(null, this.data);
     }
+    getRecording() {
+        if (this.recording) {
+            return 'Stop';
+        }
+        else {
+            return 'Record';
+        }
+    }
     template() {
         return `<header>
                     <h2>${this.type}</h2>
@@ -103,7 +111,7 @@ class VectorPosition {
                     <li>Sample Rate: <input id="sampleRate" type="text" value="${this.sampleRate}"</li>
                     <li><input type="text" id="inputModifier" placeholder="Input Modifier" value="${this.inputModifier}"/></li>
                     <li><button class="mediumButton" id="recordMomentary">Push Value</button></li>
-                    <li><button class="mediumButton" id="recordTimeline"> Record </button></li>
+                    <li><button class="mediumButton" id="recordTimeline"> ${this.getRecording()} </button></li>
                     <li><button class="mediumButton" id="removeTrack">Remove Track</button></li>
                 </ul>`;
     }

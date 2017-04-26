@@ -58,7 +58,7 @@ class Keyframe extends Track {
                     following: false,
                     followTrack: {},
                     followType: '',
-                    followingKeys: [],
+                    followKeys: [],
                     position: 0
                 };
             }
@@ -87,7 +87,7 @@ class Keyframe extends Track {
                 following: dataMap.following,
                 followTrack: dataMap.followTrack,
                 followType: dataMap.followType,
-                followingKeys: dataMap.followingKeys,
+                followKeys: dataMap.followKeys,
                 position: dataMap.position
             };
         }
@@ -118,7 +118,7 @@ class Keyframe extends Track {
             propertyTrack.followType = '';
             this.endTime = this.oldEndTime;
             this.updateTrackEnd();
-
+            
             return;
         }
 
@@ -277,7 +277,8 @@ class Keyframe extends Track {
     template() {
         return `<header>
                         <h2>${this.type}</h2>
-                        <h3>${this.targetName}.${this.selectedProperty}</h3>
+                        <h3>${this.targetName}</h3>
+                        <h4>${this.selectedProperty}</h4>
                 </header>
                 <ul>
                     <li>Start: ${this.startTime}</li>
