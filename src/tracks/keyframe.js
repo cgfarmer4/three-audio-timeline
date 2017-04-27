@@ -80,6 +80,9 @@ class Keyframe extends Track {
             returnArr[index].hasEnded = false;
         });
 
+
+    
+
         //Following keys
         if (!this.keysMap[property]) {
             this.keysMap[property] = {
@@ -195,13 +198,13 @@ class Keyframe extends Track {
 
                     let keyframeInfo = {
                         id: followTrack.targetName,
-                        name: followTrack.targetName + " -> x",
+                        name: followTrack.targetName + " -> " + this.followingPropertyPosition,
                         targetName: followTrack.targetName,
                         hasStarted: false,
                         hasEnded: false,
                         timeline: this.timeline,
                         target: this.target,
-                        propertyName: "x",
+                        propertyName: this.selectedProperty,
                         startValue: startValue,
                         endValue: endValue,
                         startTime: prevEndTime,

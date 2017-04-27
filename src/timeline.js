@@ -79,30 +79,7 @@ class Timeline extends EventEmitter {
                 if (this.loopMode == -1 || (this.loopCount <= this.loopMode)) {
                     this.time = 0;
                     this.loopCount++;
-
-                    for (let i = 0; i < this.tracks.length; i++) {
-                        let track = this.tracks[i];
-                        if (track.keysMap) {                            
-
-                            for (let key in track.keysMap) {
-                                let keys = track.keysMap[key].keys;
-                                keys.forEach(function (key, index, returnArr) {
-                                    returnArr[index].hasStarted = false;
-                                    returnArr[index].hasEnded = false;
-                                })
-
-                                if (track.keysMap[key].following) {
-                                    track.keysMap[key].followKeys.forEach(function (key, index, returnArr) {
-                                        returnArr[index].hasStarted = false;
-                                        returnArr[index].hasEnded = false;
-                                    })
-                                }
-                            }
-                        }
-                        else if (track.recording) {
-                            track.nextTick = 0;
-                        }
-                    }
+                    this.restartTracks();
                 }
                 else {
                     this.playing = false;
@@ -158,6 +135,13 @@ class Timeline extends EventEmitter {
                         keysReturn[index].hasStarted = false;
                         keysReturn[index].hasEnded = false;
                     })
+
+                    if (track.keysMap[property].following) {
+                        track.keysMap[property].followKeys.forEach((key, index, keysReturn) => {
+                            keysReturn[index].hasStarted = false;
+                            keysReturn[index].hasEnded = false;
+                        })
+                    }
                 }
             }
             else if (track.recording) {
@@ -211,6 +195,7 @@ class Timeline extends EventEmitter {
                         for (let key in track.keysMap) {
                             keysTrack.rebuildKeysMapProperty(key, track.keysMap[key]);
                         }
+                        
                         break;
 
                     case 'number':
@@ -236,6 +221,7 @@ class Timeline extends EventEmitter {
      * Iterate animation values and apply the values with the proper duration and easing.
      */
     applyValues() {
+        if(!this.playing) return;
         for (let i = 0; i < this.tracks.length; i++) {
             // If recording, check to see if in accordance with sample rate value
             // and ready for next tick in data saving.
