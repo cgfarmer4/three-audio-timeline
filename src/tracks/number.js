@@ -67,6 +67,8 @@ class NumberTrack {
             this.unmodifiedValues = this.unmodifiedValues.concat(this.data);
         }
 
+        let modifiedData = {};
+
         this.inputModifier = this.inputModiferElement.value;
         this.inputChanges += 1;
 
@@ -78,10 +80,12 @@ class NumberTrack {
         }
 
         //update data
-        this.data.forEach((dataPoint, index, returnArr) => {
+        this.data.forEach((dataPoint, index) => {
             let value = `${dataPoint} ${this.inputModifier}`;
-            returnArr[index] = eval(value);
+            modifiedData[index] = eval(value);
         });
+
+        this.data = modifiedData;
 
         //update draw template
         this.min = Math.min.apply(null, this.data);

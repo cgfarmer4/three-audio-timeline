@@ -13,11 +13,12 @@ class VectorPosition {
         this.labelHeight = 90;
         this.type = 'position';
         this.sampleRate = Number(sampleRate) || 1;
-        this.min = -200;
-        this.max = 200;
+        this.min = -500;
+        this.max = 500;
         this.nextTick = 0;
         this.recording = false;
-
+        this.inputChanges = 0;
+        this.unmodifiedValues = {};
         this.data = {
             x: [],
             y: [],
@@ -70,8 +71,14 @@ class VectorPosition {
     updateModifier(event) {
         //back up data values
         if (this.inputChanges === 0) {
-            this.unmodifiedValues = this.unmodifiedValues.concat(this.data);
+            this.unmodifiedValues = Object.assign({}, this.data);
         }
+
+        let modifiedData = {
+            x: [],
+            y: [],
+            z: []
+        };
 
         this.inputModifier = this.inputModiferElement.value;
         this.inputChanges += 1;
@@ -83,11 +90,25 @@ class VectorPosition {
             return;
         }
 
-        //update data
-        this.data.forEach((dataPoint, index, returnArr) => {
-            let value = `${dataPoint} ${this.inputModifier}`;
-            returnArr[index] = eval(value);
+        //x
+        this.data.x.forEach((dataPoint, index) => {
+            let value = `${this.unmodifiedValues.x[index]} ${this.inputModifier}`;
+            modifiedData.x[index] = eval(value);
         });
+
+        //y
+        this.data.y.forEach((dataPoint, index) => {
+            let value = `${this.unmodifiedValues.y[index]} ${this.inputModifier}`;
+            modifiedData.y[index] = eval(value);
+        });
+
+        //z
+        this.data.z.forEach((dataPoint, index) => {
+            let value = `${this.unmodifiedValues.z[index]} ${this.inputModifier}`;
+            modifiedData.z[index] = eval(value);
+        });
+
+        this.data = modifiedData;
 
         //update draw template
         this.min = Math.min.apply(null, this.data);

@@ -15,6 +15,7 @@ class Keyframe extends Track {
         this.endTime = 0;
         this.time = 0;
         this.keysMap = {};
+        this.followingPropertyPosition = 'x';
         this.selectedProperty = '';
 
         this.on('follow:updateModifier', this.updateFollowingModifier.bind(this));
@@ -80,10 +81,16 @@ class Keyframe extends Track {
             returnArr[index].hasEnded = false;
         });
 
-
-    
-
         //Following keys
+        if (dataMap.following) {
+            dataMap.followKeys.forEach((key, index, returnArr) => {
+                returnArr[index].target = this.target;
+                returnArr[index].parent = this;
+                returnArr[index].hasStarted = false;
+                returnArr[index].hasEnded = false;
+            });
+        }
+
         if (!this.keysMap[property]) {
             this.keysMap[property] = {
                 keys: dataMap.keys,
@@ -121,7 +128,7 @@ class Keyframe extends Track {
             propertyTrack.followType = '';
             this.endTime = this.oldEndTime;
             this.updateTrackEnd();
-            
+
             return;
         }
 
@@ -129,7 +136,15 @@ class Keyframe extends Track {
         let selected = followTracks[event.target.value];
 
         if (selected.type === 'position') {
-            this.followPropertyPosition();
+            let position = this.followPropertyPosition();
+            document.getElementById('follow').insertAdjacentHTML('beforeend', position);
+            
+            let positionOptions = document.getElementById('positionOptions');
+            positionOptions.onchange = (event) => {
+                this.followingPropertyPosition = event.target.value;
+                this.updateFollowingModifier();
+            }
+
         }
 
         propertyTrack.following = true;
@@ -139,24 +154,21 @@ class Keyframe extends Track {
         this.updateTrackEnd();
     }
     followPropertyPosition() {
-        let followSelect = document.getElementById('followSelect');
-        let positions = `<label for="radio4"> x </label>
-                        <input name="followPropertyPosition" type="radio" id="radio4" value="x" checked=true>
-                        <label for="radio5"> y </label>
-                        <input name="followPropertyPosition" type="radio" id="radi5" value="y">
-                        <label for="radio6"> z </label>
-                        <input name="followPropertyPosition" type="radio" id="radio6" value="z">`;
+        let vector = ['x', 'y', 'z'];
+        let positions = '<div id="positionOptions">';
 
-        let positionOptions = document.createElement('div');
-        positionOptions.id = 'positionOptions';
-        positionOptions.innerHTML = positions;
-        followSelect.parentNode.insertBefore(positionOptions, followSelect.nextSibling);
-        this.followingPropertyPosition = 'x';
-
-        positionOptions.onchange = (event) => {
-            this.followingPropertyPosition = event.target.value;
-            this.updateFollowingModifier();
+        let self = this;
+        function checked(coordinate) {
+            if (self.followingPropertyPosition === coordinate) return 'checked';
         }
+
+        vector.forEach((coordinate) => {
+            positions += `<label for="radio4"> ${coordinate} </label>`;
+            positions += `<input name="followPropertyPosition" type="radio" id="radio4" value="${coordinate}" ${checked(coordinate)}>`;
+        })
+        positions += '</div>';
+
+        return positions;
     }
     /**
      * Create keyframe tracks based on the follow type. 
@@ -178,6 +190,9 @@ class Keyframe extends Track {
 
                 if (followTrack.type === 'position') {
                     data = followTrack.data[this.followingPropertyPosition];
+                }
+                else if (!followTrack) {
+                    alert('Follow track missing');
                 }
                 else {
                     data = followTrack.data;
@@ -285,15 +300,24 @@ class Keyframe extends Track {
                 </header>
                 <ul>
                     <li>Start: ${this.startTime}</li>
-                    <li>End: ${Math.floor(this.endTime * 100) / 100 }</li>
+                    <li>End: ${Math.floor(this.endTime * 100) / 100}</li>
                 </ul>
                 <div id="follow" style="padding: 0 10px 10px 10px">
                     ${this.followableInput()}
+                    ${this.vectorInput()} 
                     ${this.followTypeRadio()}
                     <!--<input type="text" placeholder="modify follow value"></input>-->
                 </div>
                 <button class="mediumButton" id="trackRemove" style="margin-left: 10px;"> Remove Parent </button>
                 `;
+    }
+    vectorInput() {
+        if (this.keysMap[this.selectedProperty].following && this.type === 'keyframe') {
+            return this.followPropertyPosition();
+        }
+        else {
+            return '';
+        }
     }
     followableInput() {
         this.followableTracks = [];
@@ -350,11 +374,11 @@ class Keyframe extends Track {
         return types;
     }
     detailsEvents() {
-        let followInput = document.getElementById('followSelect');
+        this.followInput = document.getElementById('followSelect');
         let followModifier = document.getElementById('followModifier');
         let trackRemove = document.getElementById('trackRemove');
 
-        followInput.onchange = this.updateFollowingTrack.bind(this);
+        this.followInput.onchange = this.updateFollowingTrack.bind(this);
 
         followModifier.onclick = (event) => {
             this.keysMap[this.selectedProperty].followType = document.querySelector('input[name="followKeysOptions"]:checked').value;
@@ -364,6 +388,14 @@ class Keyframe extends Track {
         trackRemove.onclick = (event) => {
             this.timeline.tracks.splice(this.timeline.tracks.indexOf(this), 1);
             document.getElementById('detailsView').remove();
+        }
+
+        if (document.getElementById('positionOptions')) {
+            let positionOptions = document.getElementById('positionOptions');
+            positionOptions.onchange = (event) => {
+                this.followingPropertyPosition = event.target.value;
+                this.updateFollowingModifier();
+            }
         }
     }
 }
