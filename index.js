@@ -1,11 +1,13 @@
-const Timeline = require('./src/timeline.js');
-const Easing = require('./src/easing.js');
-const UIView = require('./src/ui/index.js');
-const Tracks = require('./src/tracks/index.js');
+const Timeline = require('./src/timeline');
+const Easing = require('./src/easing');
+const UIView = require('./src/ui');
+const Tracks = require('./src/tracks');
+const OmnitoneAudio = require('./src/audio');
 
 module.exports = {
     Timeline: Timeline,
     Easing: Easing,
     UIView: UIView,
-    Tracks: Tracks
+    Tracks: Tracks,
+    OmnitoneAudio: OmnitoneAudio
 };

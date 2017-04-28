@@ -9,9 +9,10 @@ const Tracks = require('./tracks');
  * extends EventEmitter
  */
 class Timeline extends EventEmitter {
-    constructor() {
+    constructor(audio) {
         super();
         this.name = "Global";
+        this.audio = audio;
         this.tracks = [];
         this.targets = [];
         this.time = 0;
@@ -19,6 +20,10 @@ class Timeline extends EventEmitter {
         this.loopCount = 0;
         this.loopMode = 1;
         this.playing = false;
+
+        this.audio.on('audio:ready', () => {
+            document.getElementById('audioStatus').textContent = 'audio:ready';
+        })
     }
     /**
      * Possible values of n:
@@ -40,12 +45,15 @@ class Timeline extends EventEmitter {
         this.playing = false;
         this.time = 0;
         this.restartTracks();
+        this.audio.audioElement.pause();
+        this.audio.audioElement.currentTime = 0;
     }
     /**
      * Pause
      */
     pause() {
         this.playing = false;
+        this.audio.audioElement.pause();
     }
     /**
      * Play
@@ -57,6 +65,7 @@ class Timeline extends EventEmitter {
         }
         
         this.playing = true;
+        this.audio.audioElement.play();
     }
     /**
      * 

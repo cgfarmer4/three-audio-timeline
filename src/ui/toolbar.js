@@ -25,6 +25,7 @@ class Toolbar {
             <button id="addTrack"></button>
             <!--<button id="loop">loop</button>>-->
             <div id="currentTime" style="display: inline-block;">0</div>
+            <div id="audioStatus" style="display: inline-block;">audio:loading</div>
         </div>`;
     }
     addTrack() {
