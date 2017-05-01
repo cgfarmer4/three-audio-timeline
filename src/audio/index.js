@@ -13,6 +13,10 @@ class OmnitoneAudioPlayback extends EventEmitter {
         this.audioElement = document.createElement('audio');
         this.audioElement.src = audioUrl;
 
+        let AudioContext = window.AudioContext // Default
+            || window.webkitAudioContext // Safari and old versions of Chrome
+            || false; 
+
         // Create AudioContext, MediaElementSourceNode and FOARenderer.
         let audioContext = new AudioContext();
         let audioElementSource = audioContext.createMediaElementSource(this.audioElement);
@@ -25,10 +29,11 @@ class OmnitoneAudioPlayback extends EventEmitter {
         foaRenderer.initialize().then(() => {
             audioElementSource.connect(foaRenderer.input);
             foaRenderer.output.connect(audioContext.destination);
-            this.emit('audio:ready');
+            this.emit('loaded:audio', foaRenderer);
+        }, function (audioError) {
+            console.error('Error loading audio:', audioError);
+            this.emit('failed:audio', audioError);
         });
-
-        return foaRenderer;  
     }
 }
 

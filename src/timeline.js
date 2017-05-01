@@ -9,10 +9,9 @@ const Tracks = require('./tracks');
  * extends EventEmitter
  */
 class Timeline extends EventEmitter {
-    constructor(audio) {
+    constructor() {
         super();
         this.name = "Global";
-        this.audio = audio;
         this.tracks = [];
         this.targets = [];
         this.time = 0;
@@ -21,9 +20,12 @@ class Timeline extends EventEmitter {
         this.loopMode = 1;
         this.playing = false;
 
-        this.audio.on('audio:ready', () => {
-            document.getElementById('audioStatus').textContent = 'audio:ready';
-        })
+        // Rotate the sound field by passing Three.js camera object. (4x4 matrix)
+        // this.omnitoneAudio.renderer.setRotationMatrixFromCamera(this.camera.matrix);
+        // this.audio.on('audio:ready', () => {
+        //     document.getElementById('audioStatus').textContent = 'audio:ready';
+        // })
+        // this.audio = audio;
     }
     /**
      * Possible values of n:
@@ -45,15 +47,15 @@ class Timeline extends EventEmitter {
         this.playing = false;
         this.time = 0;
         this.restartTracks();
-        this.audio.audioElement.pause();
-        this.audio.audioElement.currentTime = 0;
+        // this.audio.audioElement.pause();
+        // this.audio.audioElement.currentTime = 0;
     }
     /**
      * Pause
      */
     pause() {
         this.playing = false;
-        this.audio.audioElement.pause();
+        // this.audio.audioElement.pause();
     }
     /**
      * Play
@@ -65,7 +67,7 @@ class Timeline extends EventEmitter {
         }
         
         this.playing = true;
-        this.audio.audioElement.play();
+        // this.audio.audioElement.play();
     }
     /**
      * 
@@ -85,9 +87,10 @@ class Timeline extends EventEmitter {
             let animationEnd = this.findAnimationEnd();
 
             if (this.time > animationEnd) {
+                this.loopCount += 1;
+                
                 if (this.loopMode == -1 || (this.loopCount <= this.loopMode)) {
                     this.time = 0;
-                    this.loopCount++;
                     this.restartTracks();
                 }
                 else {
