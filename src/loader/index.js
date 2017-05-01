@@ -36,9 +36,9 @@ class Loader extends EventEmitter {
         this.numAssets = Object.keys(this.assets).length;
         this.loadedAssets = 0;
 
-        for(let assets in this.assets) {
-            let asset = this.assets[assets];
-            let loader = this[asset.type](asset, assets);
+        for(let entity in this.assets) {
+            let asset = this.assets[entity];
+            let loader = this[asset.type](asset, entity);
         }
 
         this.on('loaded:texture', this.parseLoadEvent.bind(this));
