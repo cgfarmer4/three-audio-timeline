@@ -17,15 +17,14 @@ class Timeline extends EventEmitter {
         this.time = 0;
         this.totalTime = 0;
         this.loopCount = 0;
-        this.loopMode = 1;
-        this.playing = false;
+        this.loopMode = -1;
+        this.playing = true;
 
         // Rotate the sound field by passing Three.js camera object. (4x4 matrix)
-        // this.omnitoneAudio.renderer.setRotationMatrixFromCamera(this.camera.matrix);
+        // this.audio.renderer.setRotationMatrixFromCamera(this.camera.matrix);
         // this.audio.on('audio:ready', () => {
         //     document.getElementById('audioStatus').textContent = 'audio:ready';
         // })
-        // this.audio = audio;
     }
     /**
      * Possible values of n:

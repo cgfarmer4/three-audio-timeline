@@ -33,7 +33,7 @@ class Loader extends EventEmitter {
         super();
         
         this.assets = assets;
-        this.numAssets = this.assets.length;
+        this.numAssets = Object.keys(this.assets).length;
         this.loadedAssets = 0;
 
         for(let assets in this.assets) {
