@@ -3,7 +3,9 @@ const THREE = require('three');
 const Audio = require('../audio');
 const DracoModule = require('../../vendor/draco_decoder');
 const DracoLoader = require('../../vendor/dracoLoader');
+const MTLLoader = require('../../vendor/MTLLoader');
 const EventEmitter = require('events').EventEmitter;
+
 
 /**
  * 
@@ -44,6 +46,7 @@ class Loader extends EventEmitter {
         this.on('loaded:texture', this.parseLoadEvent.bind(this));
         this.on('loaded:draco', this.parseLoadEvent.bind(this));
         this.on('loaded:audio', this.parseLoadEvent.bind(this));
+        this.on('loaded:material', this.parseLoadEvent.bind(this));
         this.on('failed', this.parseFailedEvent.bind(this));
     }
     parseLoadEvent(event) {
@@ -120,6 +123,18 @@ class Loader extends EventEmitter {
         audio.on('failed:audio', (error) => {
             self.emit('failed', error);
         })
+    }
+    material(asset, name) {
+        let mtlLoader = new MTLLoader();
+        mtlLoader.load(asset.url, (materials) => {
+            materials.preload();
+
+            this.emit('loaded:material', {
+                asset: asset,
+                name: name,
+                data: materials
+            });
+        });
     }
 }
 
