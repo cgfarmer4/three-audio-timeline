@@ -418,7 +418,7 @@ class TimelineUIView {
         }
     }
     /**
-     * Select individual keyframe rhombus within keyframe track
+     * Select individual key within keyframe track
      * 
      * @param {*} mouseX 
      * @param {*} mouseY 
@@ -447,8 +447,9 @@ class TimelineUIView {
         for (let i = 0; i < keys.length; i++) {
             let key = keys[i];
             let x = this.timeToX(key.startTime);
-
-            if (x >= mouseX - this.trackLabelHeight * 0.3 && x <= mouseX + this.trackLabelHeight * 0.3) {
+            let width = this.timeToX(key.endTime) - this.timeToX(key.startTime);
+            
+            if (x >= mouseX - width && x <= mouseX + width) {
                 key.selected = true;
                 this.selectedKeys.push(key);
                 this.details.emit('displayKey', this.selectedKeys[0]);
@@ -664,8 +665,13 @@ class TimelineUIView {
                         let first = (i === 0);
                         let last = (i == keys.length - 1);
 
-                        this.drawRombus(this.timeToX(keyProperties.startTime), track.keysMap[property].position - track.labelHeight * 0.5, track.labelHeight * 0.5, track.labelHeight * 0.5, "#999999", true, true, keyProperties.selected ? "#FF0000" : "#666666");
-                        this.drawRombus(this.timeToX(keyProperties.startTime), track.keysMap[property].position - track.labelHeight * 0.5, track.labelHeight * 0.5, track.labelHeight * 0.5, "#DDDDDD", !first, !last);
+                        let xBegin = this.timeToX(keyProperties.startTime);
+                        let yBegin = track.keysMap[property].position - track.labelHeight;
+                        let fillColor = "#999999";
+                        let width = this.timeToX(keyProperties.endTime) - this.timeToX(keyProperties.startTime)
+                        let strokeColor = keyProperties.selected ? "#FF0000" : "#666666";
+
+                        this.drawKeyRect(xBegin, yBegin, width, track.labelHeight, fillColor, strokeColor);
                     })
 
                     this.yshift = track.keysMap[property].position;
@@ -918,36 +924,14 @@ class TimelineUIView {
      * @param {*} drawRight 
      * @param {*} strokeColor 
      */
-    drawRombus(x, y, w, h, color, drawLeft, drawRight, strokeColor) {
+    drawKeyRect(x, y, w, h, color, strokeColor) {
+        if (w < 1) w = 10;
+
         this.c.fillStyle = color;
-        if (strokeColor) {
-            this.c.lineWidth = 2;
-            this.c.strokeStyle = strokeColor;
-            this.c.beginPath();
-            this.c.moveTo(x, y - h / 2);
-            this.c.lineTo(x + w / 2, y);
-            this.c.lineTo(x, y + h / 2);
-            this.c.lineTo(x - w / 2, y);
-            this.c.lineTo(x, y - h / 2);
-            this.c.stroke();
-            this.c.lineWidth = 1;
-        }
+        this.c.fillRect(x, y, w, h);
 
-        if (drawLeft) {
-            this.c.beginPath();
-            this.c.moveTo(x, y - h / 2);
-            this.c.lineTo(x - w / 2, y);
-            this.c.lineTo(x, y + h / 2);
-            this.c.fill();
-        }
-
-        if (drawRight) {
-            this.c.beginPath();
-            this.c.moveTo(x, y - h / 2);
-            this.c.lineTo(x + w / 2, y);
-            this.c.lineTo(x, y + h / 2);
-            this.c.fill();
-        }
+        this.c.strokeStyle = strokeColor;
+        this.c.strokeRect(x, y, w, h);
     }
 }
 

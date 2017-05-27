@@ -45,6 +45,7 @@ class Loader extends EventEmitter {
         }
 
         this.on('loaded:texture', this.parseLoadEvent.bind(this));
+        this.on('loaded:image', this.parseLoadEvent.bind(this));
         this.on('loaded:json', this.parseLoadEvent.bind(this));
         this.on('loaded:draco', this.parseLoadEvent.bind(this));
         this.on('loaded:audio', this.parseLoadEvent.bind(this));
@@ -71,6 +72,24 @@ class Loader extends EventEmitter {
     }
     updateProgress() {
         this.progress = this.loadedAssets / this.numAssets;
+    }
+    image(asset, name) {
+        let image = document.createElement('img');
+
+        image.onload = () => {
+            this.emit('loaded:image', {
+                asset: asset,
+                name: name,
+                data: {}
+            });
+        };
+
+        image.onerror = (error) => {
+            console.error('Error loading texture:', error);
+            this.emit('failed', error);
+        }
+
+        image.src = asset.url;
     }
     texture(asset, name) {
         let self = this;
